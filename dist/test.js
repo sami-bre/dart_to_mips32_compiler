@@ -128,4 +128,17 @@ testGetAST([
     { type: "semicolon", value: ";" },
 ], JSON.stringify(result));
 testCount++;
+// testing the register provider
+var rp = new compiler_1.RegisterProvider();
+if (rp.getSaved() !== "$s0" || rp.getTemp() !== "$t0") {
+    throw new Error('Register provider failed. to give the first saved/temp register');
+}
+for (var i = 0; i < 10; i++) {
+    rp.getSaved();
+    rp.getTemp();
+}
+if (rp.getSaved() !== "$s3" || rp.getTemp() !== "$t1") {
+    throw new Error('Register provider failed. to loop around correctly');
+}
+testCount++;
 console.log("========= All ".concat(testCount, " tests passed! ==========="));

@@ -180,3 +180,28 @@ export function getAST(tokens: { type: String; value: String }[]) {
   // finally, return the program node
   return programNode
 }
+
+
+//***********************THE REGISTER PROVIDER CLASS****************/
+
+export class RegisterProvider {
+  // this class gives new empty registers when asked and compromises by 
+  // recycling registers if required.
+
+  private currentSaved: number = 0;   // the current available saved register number
+  private maxSaved: number = 8;       // the maximum saved register number (7 for mips-32) +1 for modulp purposes
+  private currentTemp: number = 0;    // the current available temporary register number
+  private maxTemp: number = 10;        // the maximum temporary register number (9 for mips-32) +1 for modulo purposes
+
+  getSaved(): String {
+    let num = this.currentSaved % this.maxSaved
+    this.currentSaved++
+    return "$s" + num
+  }
+
+  getTemp(): String {
+    let num = this.currentTemp % this.maxTemp
+    this.currentTemp++
+    return "$t" + num
+  }
+}

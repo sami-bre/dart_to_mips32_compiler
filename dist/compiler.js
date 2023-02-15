@@ -1,7 +1,7 @@
 "use strict";
 //***********************************THE TOKENIZER*********************************** */
 exports.__esModule = true;
-exports.getAST = exports.tokenizer = void 0;
+exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
 function tokenizer(dartString) {
     var tokens = [];
     var current = 0; // used to track where we are in the program string
@@ -172,3 +172,26 @@ function getAST(tokens) {
     return programNode;
 }
 exports.getAST = getAST;
+//***********************THE REGISTER PROVIDER CLASS****************/
+var RegisterProvider = /** @class */ (function () {
+    function RegisterProvider() {
+        // this class gives new empty registers when asked and compromises by 
+        // recycling registers if required.
+        this.currentSaved = 0; // the current available saved register number
+        this.maxSaved = 8; // the maximum saved register number (7 for mips-32) +1 for modulp purposes
+        this.currentTemp = 0; // the current available temporary register number
+        this.maxTemp = 10; // the maximum temporary register number (9 for mips-32) +1 for modulo purposes
+    }
+    RegisterProvider.prototype.getSaved = function () {
+        var num = this.currentSaved % this.maxSaved;
+        this.currentSaved++;
+        return "$s" + num;
+    };
+    RegisterProvider.prototype.getTemp = function () {
+        var num = this.currentTemp % this.maxTemp;
+        this.currentTemp++;
+        return "$t" + num;
+    };
+    return RegisterProvider;
+}());
+exports.RegisterProvider = RegisterProvider;
