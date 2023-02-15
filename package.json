@@ -1,0 +1,24 @@
+{
+  "name": "dart_to_mips32_compiler",
+  "version": "1.0.0",
+  "description": "A tiny compiler that can compile simple dart code into MIPS-32 assembly, written in typescript",
+  "main": "index.ts",
+  "scripts": {
+    "live-compile": "tsc -w --outDir dist/ src/compiler.ts src/test.ts",
+    "test": "node dist/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/sami-bre/dart_to_mips32_compiler.git"
+  },
+  "author": "ffekirnew",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sami-bre/dart_to_mips32_compiler/issues"
+  },
+  "homepage": "https://github.com/sami-bre/dart_to_mips32_compiler#readme",
+  "devDependencies": {
+    "@types/node": "^18.13.0",
+    "typescript": "^4.9.5"
+  }
+}
