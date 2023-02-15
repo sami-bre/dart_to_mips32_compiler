@@ -99,8 +99,8 @@ var result = {
                 type: "addition",
                 value: "+",
                 left: {
-                    type: "identifier",
-                    value: "b"
+                    type: "numberLiteral",
+                    value: "13"
                 },
                 right: {
                     type: "identifier",
@@ -121,12 +121,10 @@ testGetAST([
     { type: "semicolon", value: ";" },
     { type: "declaration", value: "int e" },
     { type: "assignment", value: "=" },
-    { type: "identifier", value: "b" },
+    { type: "numberLiteral", value: "13" },
     { type: "addition", value: "+" },
     { type: "identifier", value: "c" },
     { type: "semicolon", value: ";" },
 ], JSON.stringify(result));
 testCount++;
 console.log("========= All ".concat(testCount, " tests passed! ==========="));
-'{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"subtraction","value":"-","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}}]}';
-'{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"addition","value":"+","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}}]}';
