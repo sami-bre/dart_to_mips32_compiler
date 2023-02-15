@@ -1,6 +1,4 @@
-import { brotliDecompressSync } from "zlib";
-import { tokenizer, getAST, RegisterProvider } from "./compiler";
-import { hasUncaughtExceptionCaptureCallback } from "process";
+import { tokenizer, getAST, RegisterProvider, Symbol, SymbolTable } from "./compiler";
 
 function testTokenizer(
   dartString: string,
@@ -166,9 +164,9 @@ testGetAST(
 
 testCount++
 
-// testing the register provider
+// ******************* testing the register provider ***************************
 
-let rp = new RegisterProvider()
+const rp = new RegisterProvider()
 if(rp.getSaved() !== "$s0" || rp.getTemp() !== "$t0") {
   throw new Error('Register provider failed. to give the first saved/temp register')
 }
@@ -183,5 +181,7 @@ if(rp.getSaved() !== "$s3" || rp.getTemp() !== "$t1") {
 }
 
 testCount ++
+
+
 
 console.log(`========= All ${testCount} tests passed! ===========`);

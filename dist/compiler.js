@@ -1,7 +1,7 @@
 "use strict";
 //***********************************THE TOKENIZER*********************************** */
 exports.__esModule = true;
-exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
+exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
 function tokenizer(dartString) {
     var tokens = [];
     var current = 0; // used to track where we are in the program string
@@ -105,7 +105,7 @@ function getAST(tokens) {
         tokenGroup.push(tokens[counter]);
         counter++;
     }
-    // in case there's a missing semicolon after the last statement ... 
+    // in case there's a missing semicolon after the last statement ...
     if (tokenGroup[0]) {
         throw new Error("there is a missing semicolon after the last statement");
     }
@@ -175,7 +175,7 @@ exports.getAST = getAST;
 //***********************THE REGISTER PROVIDER CLASS****************/
 var RegisterProvider = /** @class */ (function () {
     function RegisterProvider() {
-        // this class gives new empty registers when asked and compromises by 
+        // this class gives new empty registers when asked and compromises by
         // recycling registers if required.
         this.currentSaved = 0; // the current available saved register number
         this.maxSaved = 8; // the maximum saved register number (7 for mips-32) +1 for modulp purposes
@@ -195,3 +195,31 @@ var RegisterProvider = /** @class */ (function () {
     return RegisterProvider;
 }());
 exports.RegisterProvider = RegisterProvider;
+var SymbolTable = /** @class */ (function () {
+    function SymbolTable() {
+        this.table = [];
+    }
+    SymbolTable.prototype.setSymbol = function (symbol) {
+        // if symbol already exists, throw error (b/c we're trying to re-declare it)
+        var i = 0;
+        while (i < this.table.length) {
+            if (this.table[i].identifier == symbol.identifier) {
+                throw new Error("the identifier ".concat(symbol.identifier, " is already declared."));
+            }
+        }
+        // otherwise, set it
+        this.table.push(symbol);
+    };
+    SymbolTable.prototype.getSymbol = function (identifier) {
+        // we return the symbol if it exists. otherwise, null
+        var i = 0;
+        while (i < this.table.length) {
+            if (this.table[i].identifier == identifier) {
+                return this.table[i];
+            }
+        }
+        return null;
+    };
+    return SymbolTable;
+}());
+exports.SymbolTable = SymbolTable;

@@ -102,9 +102,9 @@ export function getAST(tokens: { type: String; value: String }[]) {
     counter++;
   }
 
-  // in case there's a missing semicolon after the last statement ... 
-  if(tokenGroup[0]) {
-    throw new Error("there is a missing semicolon after the last statement")
+  // in case there's a missing semicolon after the last statement ...
+  if (tokenGroup[0]) {
+    throw new Error("there is a missing semicolon after the last statement");
   }
 
   // a function to check if a token group contains a specific token type
@@ -178,30 +178,66 @@ export function getAST(tokens: { type: String; value: String }[]) {
   }
 
   // finally, return the program node
-  return programNode
+  return programNode;
 }
-
 
 //***********************THE REGISTER PROVIDER CLASS****************/
 
 export class RegisterProvider {
-  // this class gives new empty registers when asked and compromises by 
+  // this class gives new empty registers when asked and compromises by
   // recycling registers if required.
 
-  private currentSaved: number = 0;   // the current available saved register number
-  private maxSaved: number = 8;       // the maximum saved register number (7 for mips-32) +1 for modulp purposes
-  private currentTemp: number = 0;    // the current available temporary register number
-  private maxTemp: number = 10;        // the maximum temporary register number (9 for mips-32) +1 for modulo purposes
+  private currentSaved: number = 0; // the current available saved register number
+  private maxSaved: number = 8; // the maximum saved register number (7 for mips-32) +1 for modulp purposes
+  private currentTemp: number = 0; // the current available temporary register number
+  private maxTemp: number = 10; // the maximum temporary register number (9 for mips-32) +1 for modulo purposes
 
   getSaved(): String {
-    let num = this.currentSaved % this.maxSaved
-    this.currentSaved++
-    return "$s" + num
+    let num = this.currentSaved % this.maxSaved;
+    this.currentSaved++;
+    return "$s" + num;
   }
 
   getTemp(): String {
-    let num = this.currentTemp % this.maxTemp
-    this.currentTemp++
-    return "$t" + num
+    let num = this.currentTemp % this.maxTemp;
+    this.currentTemp++;
+    return "$t" + num;
   }
 }
+
+/*************************THE SYMBOL TABLE*****************************/
+
+export interface Symbol {
+  identifier: String;
+  register: String;
+  type: "int" | "string";
+}
+export class SymbolTable {
+  private table: Symbol[] = [];
+
+  setSymbol(symbol: Symbol): void {
+    // if symbol already exists, throw error (b/c we're trying to re-declare it)
+    let i = 0;
+    while (i < this.table.length) {
+      if (this.table[i].identifier == symbol.identifier) {
+        throw new Error(
+          `the identifier ${symbol.identifier} is already declared.`
+        );
+      }
+    }
+    // otherwise, set it
+    this.table.push(symbol);
+  }
+
+  getSymbol(identifier: String): Symbol | null {
+    // we return the symbol if it exists. otherwise, null
+    let i = 0;
+    while (i < this.table.length) {
+      if (this.table[i].identifier == identifier) {
+        return this.table[i];
+      }
+    }
+    return null;
+  }
+}
+
