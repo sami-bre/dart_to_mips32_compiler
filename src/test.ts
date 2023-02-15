@@ -90,7 +90,7 @@ testGetAST(
 
 testCount++;
 
-
+// we'll use this tree to test the getAST function
 let result = {
   type: "program",
   body: [

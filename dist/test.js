@@ -61,6 +61,7 @@ testGetAST([
     { type: "semicolon", value: ";" },
 ], '{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"subtraction","value":"-","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}}]}');
 testCount++;
+// we'll use this tree to test the getAST function
 var result = {
     type: "program",
     body: [
