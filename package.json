@@ -1,28 +1,22 @@
 {
-  "name": "dart_to_mips32_compiler",
+  "name": "my-electron-app",
   "version": "1.0.0",
-  "description": "A tiny compiler that can compile simple dart code into MIPS-32 assembly, written in typescript",
-  "main": "./src/index.js",
+  "description": "A sample Electron app built with TypeScript",
+  "main": "dist/electron-main.js",
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx electron /src"
+    "start": "electron",
+    "build": "electron-builder"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://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@github.com/sami-bre/dart_to_mips32_compiler.git"
+    "url": "https://github.com/my-user/my-electron-app.git"
   },
-  "author": "ffekirnew",
+  "author": "My Name <myemail@example.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/sami-bre/dart_to_mips32_compiler/issues"
-  },
-  "homepage": "https://github.com/sami-bre/dart_to_mips32_compiler#readme",
   "devDependencies": {
-    "tailwindcss": "^3.2.6"
-  },
-  "dependencies": {
-    "esm": "^3.2.25",
-    "typescript": "^4.9.5"
+    "electron": "^16.0.2",
+    "electron-builder": "^22.12.1",
+    "electron-webpack-ts": "^3.2.0",
+    "typescript": "^4.5.4"
   }
 }

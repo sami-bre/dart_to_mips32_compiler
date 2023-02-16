@@ -10,7 +10,7 @@ export interface AstNode {
     right?: AstNode;
 }
 
-export function getAST(tokens: { type: string; value: string }[]): ProgramNode {
+export function getAST(tokens: Token[]): ProgramNode {
     const programNode: ProgramNode = {
         type: "program",
         body: [],

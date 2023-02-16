@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <!-- Add Tailwind CSS stylesheet -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Include Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <title>Complicated Code Editor</title>
+</head>
+<body class="bg-gray-900 font-sans">
+  <!-- Toolbar -->
+  <div class="bg-gray-800 text-gray-200 py-4 px-6">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center">
+        <button class="text-gray-300 hover:text-white mr-4" id="sidebar-toggle"><i class="fa fa-bars" aria-hidden="true"></i></button>
+        <button class="text-gray-300 hover:text-white mr-4">File</button>
+        <button class="text-gray-300 hover:text-white mr-4">Edit</button>
+        <button class="text-gray-300 hover:text-white mr-4">View</button>
+        <button class="text-gray-300 hover:text-white mr-4">Go</button>
+        <button class="text-gray-300 hover:text-white mr-4">Debug</button>
+        <button class="text-gray-300 hover:text-white mr-4">Terminal</button>
+        <button class="text-gray-300 hover:text-white">Help</button>
+      </div>
+      <div class="flex items-center">
+        <button class="text-gray-300 hover:text-white mr-4">Search</button>
+        <button class="text-gray-300 hover:text-white">Settings</button>
+      </div>
+    </div>
+  </div>
+  <!-- Main content area -->
+  <div class="flex flex-row h-screen">
+    <!-- Sidebar -->
+    <div class="w-1/6 bg-gray-700 text-gray-200 p-4" id="sidebar">
+      <h3 class="text-lg font-bold mb-4">Files</h3>
+      <ul class="list-none">
+        <li class="mb-2">
+          <a href="#" class="hover:text-white">app.js</a>
+        </li>
+        <li class="mb-2">
+          <a href="#" class="hover:text-white">index.html</a>
+        </li>
+        <li class="mb-2">
+          <a href="#" class="hover:text-white">styles.css</a>
+        </li>
+        <li class="mb-2">
+          <a href="#" class="hover:text-white">package.json</a>
+        </li>
+      </ul>
+    </div>
+    <!-- Tabs and editor -->
+    <div class="w-5/6 flex flex-col">
+      <!-- Tab bar -->
+      <div class="bg-gray-800 text-gray-200 py-2 px-4 flex items-center">
+        <button class="text-white bg-gray-500 rounded-l-lg px-3 py-1 mr-1 hover:bg-gray-400">index.html</button>
+        <button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400">app.js</button>
+        <button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400">styles.css</button>
+        <button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400">package.json</button>
+        <button       class="text-white bg-gray-500 rounded-r-lg px-3 py-1 hover:bg-gray-400">+</button>
+      </div>
+      <!-- Editor -->
+      <div class="flex-1 flex flex-row">
+        <!-- Code editor -->
+        <div class="flex-1 p-4">
+          <div class="border border-gray-600 rounded-md p-2 h-full">
+            <!-- Code editor content goes here -->
+          </div>
+        </div>
+        <!-- Console and debugging panel -->
+        <div class="w-1/4 bg-gray-800 text-gray-200 p-4">
+          <h3 class="text-lg font-bold mb-4">Console</h3>
+          <ul class="list-none">
+            <li class="mb-2">
+              <span class="text-gray-400">> </span><span class="text-gray-200">console.log("Hello, world!")</span>
+            </li>
+            <li class="mb-2">
+              <span class="text-gray-400">> </span><span class="text-gray-200">var x = 5;</span>
+            </li>
+            <li class="mb-2">
+              <span class="text-gray-400">> </span><span class="text-gray-200">x * 2</span>
+            </li>
+          </ul>
+          <h3 class="text-lg font-bold mb-4 mt-8">Debugging</h3>
+          <ul class="list-none">
+            <li class="mb-2">
+              <a href="#" class="hover:text-white">Line 7: app.js</a>
+            </li>
+            <li class="mb-2">
+              <a href="#" class="hover:text-white">Line 15: index.html</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+</div>
+</body>
+</html>    

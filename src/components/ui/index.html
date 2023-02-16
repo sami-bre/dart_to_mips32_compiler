@@ -6,39 +6,56 @@
     <title>Dart to MIPS32 Compiler</title>
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Include Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 h-screen">
-    <div class="h-full flex flex-col">
-        <!-- Header -->
-        <div class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4">
-            <div class="text-gray-800 font-bold text-lg">Dart2MIPS32 Compiler</div>
-            <div class="flex items-center gap-1">
-                <div class="border border-gray-400 px-2 h-6 rounded hover:bg-gray-800 hover:text-white cursor-pointer">Save dart to file</div>
-                <div class="border border-gray-400 px-2 h-6 rounded hover:bg-gray-800 hover:text-white cursor-pointer">Save MIPS to file</div>
+<body class="bg-gray-800 h-screen">
+    <div class="h-full flex flex-row w-full">
+        <!-- Sidebar -->
+        <div class="w-1/5 h-full bg-gray-900 border-r border-gray-600 flex flex-col text-white" id="sidebar">
+            <div class="items-center justify-center flex text-center h-8 border-b border-gray-600 font-bold">Open Files</div>
+            <div class="flex-1 p-4 border-b border-gray-600 overflow-y-auto">
+                <div class="cursor-pointer mb-2 hover:text-blue-600">main.dart</div>
+                <div class="cursor-pointer mb-2 hover:text-blue-600">new.dart</div>
+                <div class="cursor-pointer mb-2 hover:text-blue-600">settings.dart</div>
             </div>
+            <div class="p-4 font-bold">Explorer</div>
         </div>
-        <!-- Content -->
-        <div class="flex-1 flex">
-            <!-- Sidebar -->
-            <div class="w-1/5 h-full bg-gray-200 border-r border-gray-300 flex flex-col">
-                <div class="p-4 border-b border-gray-300 font-bold">Open Files</div>
-                <div class="flex-1 p-4 border-b border-gray-300 overflow-y-auto">
-                    <div class="cursor-pointer mb-2 hover:text-blue-600">main.dart</div>
-                    <div class="cursor-pointer mb-2 hover:text-blue-600">new.dart</div>
-                    <div class="cursor-pointer mb-2 hover:text-blue-600">settings.dart</div>
+        <div class="h-full w-4/5 flex flex-col" id="main-window">
+            <!-- Header -->
+            <div class="h-16 bg-gray-900 border-b border-gray-500 flex items-center justify-between px-4">
+                <div class="text-white font-bold text-lg">
+                    <button id="sidebar-toggle" class="text-white focus:outline-none focus:shadow-outline">
+                        <i class="fas fa-bars" aria-hidden="true"></i>
+                    </button>
+                    Dart2MIPS32 Compiler
+            </div>
+                <div class="flex items-center gap-1">
+                    <button class="border border-green-600 text-white bg-green-600 h-6 px-4 rounded hover:bg-green-800 hover:border-green-800 cursor-pointer hover:text-gray-100" id="compile">
+                        <i class="fa fa-play"></i>
+                        Compile and Run
+                    </button>
+                    <button class="border border-gray-400 px-2 h-6 rounded bg-gray-800 text-white cursor-pointer">
+                        <i class="fa fa-save" aria-hidden="true"></i>
+                        Save dart to file
+                    </button>
+                    <button class="border border-gray-400 px-2 h-6 rounded bg-gray-800 text-white cursor-pointer">
+                        <i class="fa fa-save" aria-hidden="true"></i>
+                        Save MIPS to file
+                    </button>
                 </div>
-                <div class="p-4 font-bold">Explorer</div>
             </div>
-            <!-- Editor -->
-            <div class="w-3/5 h-full p-4">
-                <textarea class="resize-none rounded-lg w-full h-full border border-gray-300 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono text-sm" placeholder="Write dart code here or open from file"></textarea>
-            </div>
-            <!-- Output -->
-            <div class="w-1/5 h-full bg-gray-200 border-l border-gray-300 p-4 flex flex-col">
-                <div class="font-bold mb-2 leading-tight">Output</div>
-                <div class="border h-5/6 border-gray-300 text-gray-700 leading-tight focus:outline-none focus:shadow-outline overflow-y-auto"></div>
-                <div class="flex my-3 justify-center items-center">
-                  <button class="border border-gray-400 text-gray-900 bg-gray-300 px-4 rounded hover:bg-gray-800 cursor-pointer hover:text-gray-100">Compile</button>
+            <!-- Content -->
+            <div class="flex-1 flex">
+                <!-- Editor -->
+                <div class="w-3/5 h-full p-4" id="editorbar">
+                    <textarea class="resize-none rounded-sm w-full h-full border border-gray-600 p-2 text-gray-100 leading-tight focus:outline-none focus:shadow-outline focus:border-gray-500 font-mono text-sm bg-gray-700" placeholder="Write dart code here or open from file" id="input"></textarea>
+                </div>
+                <!-- Output -->
+                <div class="w-2/5 h-full bg-gray-800 border-l border-gray-600 p-4 flex flex-col gap-2 text-white" id="outputbar">
+                    <div class="font-bold mb-2 leading-tight">MIPS Output</div>
+                    <textarea class="resize-none rounded-sm w-full h-2/3 border bg-gray-700 border-gray-600 p-2 text-gray-100 leading-tight focus:outline-none focus:shadow-outline font-mono text-sm h-3/4" placeholder="Out put will display here" id="output"></textarea>
+                    <textarea class="h-1/3 resize-none rounded-sm w-full border bg-gray-700 border-gray-600 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline font-mono text-sm" placeholder="Console output" id="console"></textarea>
                 </div>
             </div>
         </div>
