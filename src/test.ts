@@ -383,4 +383,38 @@ move $s0, $t3 \n`
 
 testCount++;
 
+// end-to-end tests involving print statements
+
+testEndToEnd(
+  `int a = 3; a = a+10; int b=a-a; print(b);`,
+  `li $t0, 3 
+move $s0, $t0 
+li $t1, 10 
+add $t2, $s0, $t1 
+move $s0, $t2 
+sub $t3, $s0, $s0 
+move $s1, $t3 
+li $v0, 1 
+move $a0, $s1 
+syscall \n`
+);
+
+testCount++
+
+testEndToEnd(
+  `int bar; print(bar); int foo=33; foo=bar-foo; print(foo);`,
+  `li $v0, 1 
+move $a0, $s0 
+syscall 
+li $t0, 33 
+move $s1, $t0 
+sub $t1, $s0, $s1 
+move $s1, $t1 
+li $v0, 1 
+move $a0, $s1 
+syscall \n`
+);
+
+testCount++
+
 console.log(`========= All ${testCount} tests passed! ===========`);

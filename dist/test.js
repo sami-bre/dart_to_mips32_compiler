@@ -277,4 +277,9 @@ testEndToEnd("int g = 12 + 14; int c; c = g; c = c-2;", "li $t0, 12 \nli $t1, 14
 testCount++;
 testEndToEnd("int foo = 3; int bar = 5; int c; int D; c = D; bar = c - D; foo = c + bar;", "li $t0, 3 \nmove $s0, $t0 \nli $t1, 5 \nmove $s1, $t1 \nmove $s2, $s3 \nsub $t2, $s2, $s3 \nmove $s1, $t2 \nadd $t3, $s2, $s1 \nmove $s0, $t3 \n");
 testCount++;
+// end-to-end tests involving print statements
+testEndToEnd("int a = 3; a = a+10; int b=a-a; print(b);", "li $t0, 3 \nmove $s0, $t0 \nli $t1, 10 \nadd $t2, $s0, $t1 \nmove $s0, $t2 \nsub $t3, $s0, $s0 \nmove $s1, $t3 \nli $v0, 1 \nmove $a0, $s1 \nsyscall \n");
+testCount++;
+testEndToEnd("int bar; print(bar); int foo=33; foo=bar-foo; print(foo);", "li $v0, 1 \nmove $a0, $s0 \nsyscall \nli $t0, 33 \nmove $s1, $t0 \nsub $t1, $s0, $s1 \nmove $s1, $t1 \nli $v0, 1 \nmove $a0, $s1 \nsyscall \n");
+testCount++;
 console.log("========= All ".concat(testCount, " tests passed! ==========="));

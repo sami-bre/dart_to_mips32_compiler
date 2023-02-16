@@ -286,8 +286,8 @@ export function generator(
 ): String {
   let outputString = "";
   // parse each root node in the programNode's body and append the resulting string to the output string
-  for (let nodee of programNode.body) {
-    generate(nodee);
+  for (let node of programNode.body) {
+    generate(node);
   }
 
   function generate(node: any): String | void {
@@ -344,6 +344,24 @@ export function generator(
       let opWord = node.type == "addition" ? "add" : "sub";
       outputString += `${opWord} ${tempRegister}, ${leftRegister}, ${rightRegister} \n`;
       return tempRegister;
+    }
+
+    // check for print
+    if(node.type == "print"){
+      // printee is the value of the print token.
+      // check if printee identifier and proceed
+      let register = symbolTable.getSymbol(node.value)?.register
+      if(register){ // printee is an identifier with type int
+        // write the relevant mips to print the value of the identifier
+        outputString += `li $v0, 1 \nmove $a0, ${register} \nsyscall \n`
+        return
+      } else if(new RegExp("^[0-9]*$").test(node.value)) { // check if printee number literal and proceed
+        outputString += `li $v0, 1 \nli $a0, ${node.value} \nsyscall`
+        return
+      } else {
+        // printee is neither an identifier nor a number literal. complain.
+        throw new Error("invalid argument to a print statement.")
+      }
     }
 
     // finally, check for assignment node

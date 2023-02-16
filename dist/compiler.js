@@ -255,10 +255,11 @@ function generator(programNode, symbolTable) {
     var outputString = "";
     // parse each root node in the programNode's body and append the resulting string to the output string
     for (var _i = 0, _a = programNode.body; _i < _a.length; _i++) {
-        var nodee = _a[_i];
-        generate(nodee);
+        var node = _a[_i];
+        generate(node);
     }
     function generate(node) {
+        var _a;
         // check for declaration node
         if (node.type == "declaration") {
             // get the new identifier and add it to the symbol table, then return the new register.
@@ -310,6 +311,25 @@ function generator(programNode, symbolTable) {
             var opWord = node.type == "addition" ? "add" : "sub";
             outputString += "".concat(opWord, " ").concat(tempRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
             return tempRegister;
+        }
+        // check for print
+        if (node.type == "print") {
+            // printee is the value of the print token.
+            // check if printee identifier and proceed
+            var register = (_a = symbolTable.getSymbol(node.value)) === null || _a === void 0 ? void 0 : _a.register;
+            if (register) { // printee is an identifier with type int
+                // write the relevant mips to print the value of the identifier
+                outputString += "li $v0, 1 \nmove $a0, ".concat(register, " \nsyscall \n");
+                return;
+            }
+            else if (new RegExp("^[0-9]*$").test(node.value)) { // check if printee number literal and proceed
+                outputString += "li $v0, 1 \nli $a0, ".concat(node.value, " \nsyscall");
+                return;
+            }
+            else {
+                // printee is neither an identifier nor a number literal. complain.
+                throw new Error("invalid argument to a print statement.");
+            }
         }
         // finally, check for assignment node
         if (node.type == "assignment") {
