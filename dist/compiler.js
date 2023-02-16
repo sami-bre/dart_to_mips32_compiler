@@ -1,7 +1,7 @@
 "use strict";
 //***********************************THE TOKENIZER*********************************** */
 exports.__esModule = true;
-exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
+exports.compiler = exports.generator = exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
 function tokenizer(dartString) {
     var tokens = [];
     var current = 0; // used to track where we are in the program string
@@ -313,64 +313,14 @@ function generator(programNode, symbolTable) {
     }
     return outputString;
 }
-console.log(generator({
-    type: "program",
-    body: [
-        {
-            type: "declaration",
-            value: "int a"
-        },
-        {
-            type: "declaration",
-            value: "int b"
-        },
-        {
-            type: "declaration",
-            value: "int c"
-        },
-        {
-            type: "assignment",
-            value: "=",
-            left: {
-                type: "identifier",
-                value: "a"
-            },
-            right: {
-                type: "subtraction",
-                value: "-",
-                left: {
-                    type: "identifier",
-                    value: "b"
-                },
-                right: {
-                    type: "identifier",
-                    value: "c"
-                }
-            }
-        },
-        {
-            type: "declaration",
-            value: "int d"
-        },
-        {
-            type: "assignment",
-            value: "=",
-            left: {
-                type: "declaration",
-                value: "int e"
-            },
-            right: {
-                type: "addition",
-                value: "+",
-                left: {
-                    type: "numberLiteral",
-                    value: "13"
-                },
-                right: {
-                    type: "identifier",
-                    value: "c"
-                }
-            }
-        },
-    ]
-}, symbolTable));
+exports.generator = generator;
+/*********************************** THE COMPILER ************************************* */
+function compiler(dartCode) {
+    // we need a global singleton symbol table
+    var symbolTable = new SymbolTable(new RegisterProvider());
+    var tokens = tokenizer(dartCode);
+    var ast = getAST(tokens);
+    var mipsCode = generator(ast, symbolTable);
+    return mipsCode;
+}
+exports.compiler = compiler;

@@ -1,7 +1,7 @@
 //***********************************THE TOKENIZER*********************************** */
 
 export function tokenizer(
-  dartString: string
+  dartString: String
 ): { type: String; value: String }[] {
   let tokens: { type: String; value: String }[] = [];
   let current = 0; // used to track where we are in the program string
@@ -264,7 +264,7 @@ const symbolTable = new SymbolTable(registerProvider);
 
 /*************************** THE CODE GENERATOR **************************** */
 
-function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
+export function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
   let outputString = "";
   // parse each root node in the programNode's body and append the resulting string to the output string
   for (let nodee of programNode.body) {
@@ -345,71 +345,15 @@ function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
   return outputString;
 }
 
-console.log(
-  generator(
-    {
-      type: "program",
-      body: [
-        {
-          type: "declaration",
-          value: "int a",
-        },
-        {
-          type: "declaration",
-          value: "int b",
-        },
-        {
-          type: "declaration",
-          value: "int c",
-        },
-        {
-          type: "assignment",
-          value: "=",
-          left: {
-            type: "identifier",
-            value: "a",
-          },
-          right: {
-            type: "subtraction",
-            value: "-",
-            left: {
-              type: "identifier",
-              value: "b",
-            },
-            right: {
-              type: "identifier",
-              value: "c",
-            },
-          },
-        },
 
-        {
-          type: "declaration",
-          value: "int d",
-        },
+/*********************************** THE COMPILER ************************************* */
 
-        {
-          type: "assignment",
-          value: "=",
-          left: {
-            type: "declaration",
-            value: "int e",
-          },
-          right: {
-            type: "addition",
-            value: "+",
-            left: {
-              type: "numberLiteral",
-              value: "13",
-            },
-            right: {
-              type: "identifier",
-              value: "c",
-            },
-          },
-        },
-      ],
-    },
-    symbolTable
-  )
-);
+export function compiler(dartCode: String): String {
+  // we need a global singleton symbol table
+  const symbolTable = new SymbolTable(new RegisterProvider())
+  let tokens = tokenizer(dartCode);
+  let ast = getAST(tokens);
+  let mipsCode = generator(ast, symbolTable);
+  return mipsCode;
+}
+
