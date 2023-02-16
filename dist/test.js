@@ -55,6 +55,15 @@ testTokenizer("int a = 12;", [
     { type: "semicolon", value: ";" },
 ]);
 testCount++;
+testTokenizer("int a = 12; print(a);", [
+    { type: "declaration", value: "int a" },
+    { type: "assignment", value: "=" },
+    { type: "numberLiteral", value: "12" },
+    { type: "semicolon", value: ";" },
+    { type: "print", value: "a" },
+    { type: "semicolon", value: ";" },
+]);
+testCount++;
 testTokenizer("int a = 12; int b = 4;", [
     { type: "declaration", value: "int a" },
     { type: "assignment", value: "=" },

@@ -55,7 +55,18 @@ export function tokenizer(
       throw new Error("not implemented");
     } else if (dartString[current] == "/") {
       throw new Error("not implemented");
-    } else if (dartString[current] == " ") {
+    } else if(dartString.startsWith("print(", current)) {   
+      // the print statement is a token
+      current += 6;
+      let tokenValue =''
+      while(current < dartString.length && dartString[current] != ')'){
+        tokenValue += dartString[current]
+        current++;
+      }
+      tokens.push({type: "print", value: tokenValue});
+      current++;
+    }
+     else if (dartString[current] == " ") {
       // we want to skip spaces
       current++;
       continue;
