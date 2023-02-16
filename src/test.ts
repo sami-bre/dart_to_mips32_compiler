@@ -1,5 +1,4 @@
-import { brotliDecompressSync } from "zlib";
-import { tokenizer, getAST } from "./compiler";
+import { tokenizer, getAST, RegisterProvider, Symbol, SymbolTable } from "./compiler";
 
 function testTokenizer(
   dartString: string,
@@ -164,5 +163,25 @@ testGetAST(
 );
 
 testCount++
+
+// ******************* testing the register provider ***************************
+
+const rp = new RegisterProvider()
+if(rp.getSaved() !== "$s0" || rp.getTemp() !== "$t0") {
+  throw new Error('Register provider failed. to give the first saved/temp register')
+}
+
+for(let i=0; i<10; i++) {
+  rp.getSaved()
+  rp.getTemp()
+}
+
+if(rp.getSaved() !== "$s3" || rp.getTemp() !== "$t1") {
+  throw new Error('Register provider failed. to loop around correctly')
+}
+
+testCount ++
+
+
 
 console.log(`========= All ${testCount} tests passed! ===========`);

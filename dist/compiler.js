@@ -1,7 +1,7 @@
 "use strict";
 //***********************************THE TOKENIZER*********************************** */
 exports.__esModule = true;
-exports.getAST = exports.tokenizer = void 0;
+exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
 function tokenizer(dartString) {
     var tokens = [];
     var current = 0; // used to track where we are in the program string
@@ -84,7 +84,6 @@ function tokenizer(dartString) {
     return tokens;
 }
 exports.tokenizer = tokenizer;
-//*************************************THE PARSER************************************* */
 function getAST(tokens) {
     var programNode = {
         type: "program",
@@ -94,18 +93,19 @@ function getAST(tokens) {
     // the body will contain statements (groups of tokens)
     // first split the tokens with the semicolon token (leaving the semicolons out)
     var tokenGroup = [];
+    var statements = []; // this will be a list of group of tokens, each group composing a statement.
     var counter = 0;
     while (counter < tokens.length) {
         if (tokens[counter].type == "semicolon") {
             // we push what we have in the token group to the program body
-            programNode.body.push(tokenGroup);
+            statements.push(tokenGroup);
             tokenGroup = [];
             counter++;
         }
         tokenGroup.push(tokens[counter]);
         counter++;
     }
-    // in case there's a missing semicolon after the last statement ... 
+    // in case there's a missing semicolon after the last statement ...
     if (tokenGroup[0]) {
         throw new Error("there is a missing semicolon after the last statement");
     }
@@ -165,10 +165,212 @@ function getAST(tokens) {
     }
     // at this point, the program body contains list of tokenGroups.
     // let's replace the tokenGropus with their corresponding nodes
-    for (var i = 0; i < programNode.body.length; i++) {
-        programNode.body[i] = parser(programNode.body[i]);
+    for (var i = 0; i < statements.length; i++) {
+        programNode.body.push(parser(statements[i]));
     }
     // finally, return the program node
     return programNode;
 }
 exports.getAST = getAST;
+//******************************THE REGISTER PROVIDER CLASS**************************/
+var RegisterProvider = /** @class */ (function () {
+    function RegisterProvider() {
+        // this class gives new empty registers when asked and compromises by
+        // recycling registers if required.
+        this.currentSaved = 0; // the current available saved register number
+        this.maxSaved = 8; // the maximum saved register number (7 for mips-32) +1 for modulp purposes
+        this.currentTemp = 0; // the current available temporary register number
+        this.maxTemp = 10; // the maximum temporary register number (9 for mips-32) +1 for modulo purposes
+    }
+    RegisterProvider.prototype.getSaved = function () {
+        var num = this.currentSaved % this.maxSaved;
+        this.currentSaved++;
+        return "$s" + num;
+    };
+    RegisterProvider.prototype.getTemp = function () {
+        var num = this.currentTemp % this.maxTemp;
+        this.currentTemp++;
+        return "$t" + num;
+    };
+    return RegisterProvider;
+}());
+exports.RegisterProvider = RegisterProvider;
+// now create a singleton global registerProvider object
+var registerProvider = new RegisterProvider();
+var SymbolTable = /** @class */ (function () {
+    function SymbolTable(regProv) {
+        this.table = [];
+        this.registerProvider = regProv;
+    }
+    SymbolTable.prototype.setSymbol = function (identifier, type) {
+        // if symbol already exists, throw error (b/c we're trying to re-declare it)
+        var i = 0;
+        while (i < this.table.length) {
+            if (this.table[i].name == identifier) {
+                throw new Error("the identifier ".concat(identifier, " is already declared."));
+            }
+            i++;
+        }
+        // otherwise, create a symbol and set it. then return the new register
+        var symbol = {
+            name: identifier,
+            register: this.registerProvider.getSaved(),
+            type: type
+        };
+        this.table.push(symbol);
+        return symbol.register;
+    };
+    SymbolTable.prototype.getSymbol = function (identifier) {
+        // we return the symbol if it exists. otherwise, null
+        var i = 0;
+        while (i < this.table.length) {
+            if (this.table[i].name == identifier) {
+                return this.table[i];
+            }
+            i++;
+        }
+        return null;
+    };
+    return SymbolTable;
+}());
+exports.SymbolTable = SymbolTable;
+// now create a singleton global symbolTable object
+// and pass it the singleton global registerProvider so they get connected
+var symbolTable = new SymbolTable(registerProvider);
+/*************************** THE CODE GENERATOR **************************** */
+function generator(programNode, symbolTable) {
+    var outputString = "";
+    // parse each root node in the programNode's body and append the resulting string to the output string
+    for (var _i = 0, _a = programNode.body; _i < _a.length; _i++) {
+        var nodee = _a[_i];
+        generate(nodee);
+    }
+    function generate(node) {
+        // check for declaration node
+        if (node.type == "declaration") {
+            // get the new identifier and add it to the symbol table, then return the new register.
+            if (node.value.startsWith("int")) {
+                var register = symbolTable.setSymbol(node.value.slice(3).trim(), "int");
+                return register;
+            }
+            else if (node.value.startsWith("string")) {
+                throw new Error("string features not implemented yet");
+            }
+            else {
+                throw new Error("unknown type: ".concat(node.value));
+            }
+        }
+        // checking for number literal
+        if (node.type == "numberLiteral") {
+            // get a temporary register, and return the register.
+            // and uppend mips code to to move the literal into the temp register
+            var register = symbolTable.registerProvider.getTemp();
+            outputString += "li ".concat(register, ", ").concat(node.value, " \n");
+            return register;
+        }
+        // checking for string literal
+        if (node.type == "stringLiteral") {
+            throw new Error("string features not implemented yet");
+        }
+        // checking for an identifier node
+        if (node.type == "identifier") {
+            // first get the symbol for the identifier or throw error if symbol doesn't exist
+            var symbol = symbolTable.getSymbol(node.value);
+            if (!symbol) {
+                throw new Error("unknown identifier: ".concat(node.value));
+            }
+            if (symbol.type == "string") {
+                // in case the identifier is of type string ...
+                throw new Error("string features not implemented yet");
+            }
+            // then just return the register associated with the identifier (variable)
+            return symbol.register;
+        }
+        // checking for addition / subtraction
+        if (node.type == "addition" || node.type == "subtraction") {
+            // get the left and right registers that result from calling generate on the operands, get
+            // a temporary register, write mips to add the operand registers into the temp register
+            // and finally return the temp register
+            var leftRegister = generate(node.left);
+            var rightRegister = generate(node.right);
+            var tempRegister = symbolTable.registerProvider.getTemp();
+            var opWord = node.type == "addition" ? "add" : "sub";
+            outputString += "".concat(opWord, " ").concat(tempRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
+            return tempRegister;
+        }
+        // finally, check for assignment node
+        if (node.type == "assignment") {
+            // do some validations and throw relevant errors
+            if (!["declaration", "identifier"].includes(node.left.type)) {
+                throw new Error("wront usage of assignment (=) operator: = between ".concat(node.left.value, " and ").concat(node.right.value));
+            }
+            // now call generate on the two operands and get corresponding registers, then write
+            // mips to move the value of the right register into the left register
+            var leftRegister = generate(node.left);
+            var rightRegister = generate(node.right);
+            outputString += "move ".concat(leftRegister, ", ").concat(rightRegister, " \n");
+        }
+    }
+    return outputString;
+}
+console.log(generator({
+    type: "program",
+    body: [
+        {
+            type: "declaration",
+            value: "int a"
+        },
+        {
+            type: "declaration",
+            value: "int b"
+        },
+        {
+            type: "declaration",
+            value: "int c"
+        },
+        {
+            type: "assignment",
+            value: "=",
+            left: {
+                type: "identifier",
+                value: "a"
+            },
+            right: {
+                type: "subtraction",
+                value: "-",
+                left: {
+                    type: "identifier",
+                    value: "b"
+                },
+                right: {
+                    type: "identifier",
+                    value: "c"
+                }
+            }
+        },
+        {
+            type: "declaration",
+            value: "int d"
+        },
+        {
+            type: "assignment",
+            value: "=",
+            left: {
+                type: "declaration",
+                value: "int e"
+            },
+            right: {
+                type: "addition",
+                value: "+",
+                left: {
+                    type: "numberLiteral",
+                    value: "13"
+                },
+                right: {
+                    type: "identifier",
+                    value: "c"
+                }
+            }
+        },
+    ]
+}, symbolTable));
