@@ -124,6 +124,8 @@ export function getAST(tokens: { type: String; value: String }[]) {
     throw new Error("there is a missing semicolon after the last statement");
   }
 
+  // now we have all the statement-forming tokens grouped together in tokenGroups.
+
   // a function to check if a token group contains a specific token type
   function contains(
     listOfTokens: { type: String; value: String }[],
@@ -175,7 +177,7 @@ export function getAST(tokens: { type: String; value: String }[]) {
       return subtractionNode;
     }
 
-    // nextup, check for declarations, identifiers and literals
+    // nextup, check for declarations, identifiers, literals and print tokens
     // at this point, the token group should only have one token b/c the above 3 are our only binary operators
     if (statement.length > 1) {
       throw new Error(

@@ -81,12 +81,15 @@ testTokenizer("a=120", [
     { type: "numberLiteral", value: "120" },
 ]);
 testCount++;
-testTokenizer("int a= b+c", [
+testTokenizer("print(223);int a= b+c;", [
+    { type: "print", value: "223" },
+    { type: "semicolon", value: ";" },
     { type: "declaration", value: "int a" },
     { type: "assignment", value: "=" },
     { type: "identifier", value: "b" },
     { type: "addition", value: "+" },
     { type: "identifier", value: "c" },
+    { type: "semicolon", value: ";" },
 ]);
 testCount++;
 testGetAST([
@@ -100,7 +103,9 @@ testGetAST([
     { type: "assignment", value: "=" },
     { type: "identifier", value: "c" },
     { type: "semicolon", value: ";" },
-], '{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"subtraction","value":"-","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}}]}');
+    { type: "print", value: "a" },
+    { type: "semicolon", value: ";" },
+], '{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"subtraction","value":"-","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}},{"type":"print","value":"a"}]}');
 testCount++;
 // we'll use this tree to test the getAST function
 var result = {
@@ -273,4 +278,3 @@ testCount++;
 testEndToEnd("int foo = 3; int bar = 5; int c; int D; c = D; bar = c - D; foo = c + bar;", "li $t0, 3 \nmove $s0, $t0 \nli $t1, 5 \nmove $s1, $t1 \nmove $s2, $s3 \nsub $t2, $s2, $s3 \nmove $s1, $t2 \nadd $t3, $s2, $s1 \nmove $s0, $t3 \n");
 testCount++;
 console.log("========= All ".concat(testCount, " tests passed! ==========="));
-;

@@ -99,14 +99,14 @@ testTokenizer("int a = 12;", [
   { type: "semicolon", value: ";" },
 ]);
 
-testCount++
+testCount++;
 
 testTokenizer("int a = 12; print(a);", [
   { type: "declaration", value: "int a" },
   { type: "assignment", value: "=" },
   { type: "numberLiteral", value: "12" },
   { type: "semicolon", value: ";" },
-  { type: "print", value: "a"},
+  { type: "print", value: "a" },
   { type: "semicolon", value: ";" },
 ]);
 
@@ -133,12 +133,15 @@ testTokenizer("a=120", [
 
 testCount++;
 
-testTokenizer("int a= b+c", [
+testTokenizer("print(223);int a= b+c;", [
+  { type: "print", value: "223" },
+  { type: "semicolon", value: ";" },
   { type: "declaration", value: "int a" },
   { type: "assignment", value: "=" },
   { type: "identifier", value: "b" },
   { type: "addition", value: "+" },
   { type: "identifier", value: "c" },
+  { type: "semicolon", value: ";" },
 ]);
 
 testCount++;
@@ -155,8 +158,10 @@ testGetAST(
     { type: "assignment", value: "=" },
     { type: "identifier", value: "c" },
     { type: "semicolon", value: ";" },
+    { type: "print", value: "a" },
+    { type: "semicolon", value: ";" },
   ],
-  '{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"subtraction","value":"-","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}}]}'
+  '{"type":"program","body":[{"type":"assignment","value":"=","left":{"type":"declaration","value":"int a"},"right":{"type":"subtraction","value":"-","left":{"type":"identifier","value":"b"},"right":{"type":"identifier","value":"c"}}},{"type":"assignment","value":"=","left":{"type":"declaration","value":"int f"},"right":{"type":"identifier","value":"c"}},{"type":"print","value":"a"}]}'
 );
 
 testCount++;
@@ -356,7 +361,6 @@ if (!errorThrown) {
 
 testCount++;
 
-
 testEndToEnd(
   "int g = 12 + 14; int c; c = g; c = c-2;",
   `li $t0, 12 \nli $t1, 14 \nadd $t2, $t0, $t1 \nmove $s0, $t2 \nmove $s1, $s0 \nli $t3, 2 \nsub $t4, $s1, $t3 \nmove $s1, $t4 \n`
@@ -375,9 +379,8 @@ sub $t2, $s2, $s3
 move $s1, $t2 
 add $t3, $s2, $s1 
 move $s0, $t3 \n`
-)
+);
 
-testCount++
+testCount++;
 
 console.log(`========= All ${testCount} tests passed! ===========`);
-;
