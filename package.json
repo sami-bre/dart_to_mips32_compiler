@@ -18,5 +18,8 @@
   "homepage": "https://github.com/sami-bre/dart_to_mips32_compiler#readme",
   "devDependencies": {
     "tailwindcss": "^3.2.6"
+  },
+  "dependencies": {
+    "typescript": "^4.9.5"
   }
 }
