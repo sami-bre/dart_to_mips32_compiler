@@ -78,11 +78,13 @@ export function tokenizer(
 
 //*************************************THE PARSER************************************* */
 
+export interface ProgramNode {
+  type: String;
+  body: {}[];
+}
+
 export function getAST(tokens: { type: String; value: String }[]) {
-  const programNode: {
-    type: String;
-    body: { type: String; value: String }[][];
-  } = {
+  const programNode: ProgramNode = {
     type: "program",
     body: [],
   };
@@ -90,11 +92,12 @@ export function getAST(tokens: { type: String; value: String }[]) {
   // the body will contain statements (groups of tokens)
   // first split the tokens with the semicolon token (leaving the semicolons out)
   let tokenGroup: { type: String; value: String }[] = [];
+  let statements = []; // this will be a list of group of tokens, each group composing a statement.
   let counter = 0;
   while (counter < tokens.length) {
     if (tokens[counter].type == "semicolon") {
       // we push what we have in the token group to the program body
-      programNode.body.push(tokenGroup);
+      statements.push(tokenGroup);
       tokenGroup = [];
       counter++;
     }
@@ -173,15 +176,15 @@ export function getAST(tokens: { type: String; value: String }[]) {
 
   // at this point, the program body contains list of tokenGroups.
   // let's replace the tokenGropus with their corresponding nodes
-  for (let i = 0; i < programNode.body.length; i++) {
-    programNode.body[i] = parser(programNode.body[i]);
+  for (let i = 0; i < statements.length; i++) {
+    programNode.body.push(parser(statements[i]));
   }
 
   // finally, return the program node
   return programNode;
 }
 
-//***********************THE REGISTER PROVIDER CLASS****************/
+//******************************THE REGISTER PROVIDER CLASS**************************/
 
 export class RegisterProvider {
   // this class gives new empty registers when asked and compromises by
@@ -205,39 +208,208 @@ export class RegisterProvider {
   }
 }
 
-/*************************THE SYMBOL TABLE*****************************/
+// now create a singleton global registerProvider object
+const registerProvider = new RegisterProvider();
+
+/*******************************THE SYMBOL TABLE*******************************/
 
 export interface Symbol {
-  identifier: String;
+  name: String;
   register: String;
   type: "int" | "string";
 }
 export class SymbolTable {
   private table: Symbol[] = [];
+  registerProvider;
 
-  setSymbol(symbol: Symbol): void {
+  constructor(regProv: RegisterProvider) {
+    this.registerProvider = regProv;
+  }
+
+  setSymbol(identifier: String, type: "int" | "string"): String {
     // if symbol already exists, throw error (b/c we're trying to re-declare it)
     let i = 0;
     while (i < this.table.length) {
-      if (this.table[i].identifier == symbol.identifier) {
-        throw new Error(
-          `the identifier ${symbol.identifier} is already declared.`
-        );
+      if (this.table[i].name == identifier) {
+        throw new Error(`the identifier ${identifier} is already declared.`);
       }
+      i++;
     }
-    // otherwise, set it
+    // otherwise, create a symbol and set it. then return the new register
+    let symbol: Symbol = {
+      name: identifier,
+      register: this.registerProvider.getSaved(),
+      type: type,
+    };
     this.table.push(symbol);
+    return symbol.register;
   }
 
   getSymbol(identifier: String): Symbol | null {
     // we return the symbol if it exists. otherwise, null
     let i = 0;
     while (i < this.table.length) {
-      if (this.table[i].identifier == identifier) {
+      if (this.table[i].name == identifier) {
         return this.table[i];
       }
+      i++;
     }
     return null;
   }
 }
 
+// now create a singleton global symbolTable object
+// and pass it the singleton global registerProvider so they get connected
+const symbolTable = new SymbolTable(registerProvider);
+
+/*************************** THE CODE GENERATOR **************************** */
+
+function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
+  let outputString = "";
+  // parse each root node in the programNode's body and append the resulting string to the output string
+  for (let nodee of programNode.body) {
+    generate(nodee);
+  }
+
+  function generate(node: any): String | void {
+    // check for declaration node
+    if (node.type == "declaration") {
+      // get the new identifier and add it to the symbol table, then return the new register.
+      if (node.value.startsWith("int")) {
+        let register = symbolTable.setSymbol(node.value.slice(3).trim(), "int");
+        return register;
+      } else if (node.value.startsWith("string")) {
+        throw new Error("string features not implemented yet");
+      } else {
+        throw new Error(`unknown type: ${node.value}`);
+      }
+    }
+
+    // checking for number literal
+    if (node.type == "numberLiteral") {
+      // get a temporary register, and return the register.
+      // and uppend mips code to to move the literal into the temp register
+      let register = symbolTable.registerProvider.getTemp();
+      outputString += `li ${register}, ${node.value} \n`;
+      return register;
+    }
+
+    // checking for string literal
+    if (node.type == "stringLiteral") {
+      throw new Error("string features not implemented yet");
+    }
+
+    // checking for an identifier node
+    if (node.type == "identifier") {
+      // first get the symbol for the identifier or throw error if symbol doesn't exist
+      let symbol = symbolTable.getSymbol(node.value);
+      if (!symbol) {
+        throw new Error(`unknown identifier: ${node.value}`);
+      }
+      if (symbol.type == "string") {
+        // in case the identifier is of type string ...
+        throw new Error("string features not implemented yet");
+      }
+      // then just return the register associated with the identifier (variable)
+      return symbol.register;
+    }
+
+    // checking for addition / subtraction
+    if (node.type == "addition" || node.type == "subtraction") {
+      // get the left and right registers that result from calling generate on the operands, get
+      // a temporary register, write mips to add the operand registers into the temp register
+      // and finally return the temp register
+      let leftRegister = generate(node.left);
+      let rightRegister = generate(node.right);
+      let tempRegister = symbolTable.registerProvider.getTemp();
+      let opWord = node.type == "addition" ? "add" : "sub";
+      outputString += `${opWord} ${tempRegister}, ${leftRegister}, ${rightRegister} \n`;
+      return tempRegister;
+    }
+
+    // finally, check for assignment node
+    if (node.type == "assignment") {
+      // do some validations and throw relevant errors
+      if (!["declaration", "identifier"].includes(node.left.type)) {
+        throw new Error(
+          `wront usage of assignment (=) operator: = between ${node.left.value} and ${node.right.value}`
+        );
+      }
+      // now call generate on the two operands and get corresponding registers, then write
+      // mips to move the value of the right register into the left register
+      let leftRegister = generate(node.left);
+      let rightRegister = generate(node.right);
+      outputString += `move ${leftRegister}, ${rightRegister} \n`;
+    }
+  }
+  return outputString;
+}
+
+console.log(
+  generator(
+    {
+      type: "program",
+      body: [
+        {
+          type: "declaration",
+          value: "int a",
+        },
+        {
+          type: "declaration",
+          value: "int b",
+        },
+        {
+          type: "declaration",
+          value: "int c",
+        },
+        {
+          type: "assignment",
+          value: "=",
+          left: {
+            type: "identifier",
+            value: "a",
+          },
+          right: {
+            type: "subtraction",
+            value: "-",
+            left: {
+              type: "identifier",
+              value: "b",
+            },
+            right: {
+              type: "identifier",
+              value: "c",
+            },
+          },
+        },
+
+        {
+          type: "declaration",
+          value: "int d",
+        },
+
+        {
+          type: "assignment",
+          value: "=",
+          left: {
+            type: "declaration",
+            value: "int e",
+          },
+          right: {
+            type: "addition",
+            value: "+",
+            left: {
+              type: "numberLiteral",
+              value: "13",
+            },
+            right: {
+              type: "identifier",
+              value: "c",
+            },
+          },
+        },
+      ],
+    },
+    symbolTable
+  )
+);
