@@ -33,7 +33,10 @@ app.on('ready', () => {
   });
 
   mainWindow.loadFile('./components/ui/index.html');
+
 });
+
+console.log("hello");
 
 app.on('window-all-closed', () => {
   app.quit();
