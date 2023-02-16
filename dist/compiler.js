@@ -1,7 +1,7 @@
 "use strict";
 //***********************************THE TOKENIZER*********************************** */
 exports.__esModule = true;
-exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
+exports.compiler = exports.generator = exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
 function tokenizer(dartString) {
     var tokens = [];
     var current = 0; // used to track where we are in the program string
@@ -25,7 +25,8 @@ function tokenizer(dartString) {
             // let's skip some speces, should they exist
             while (dartString[current] == " ")
                 current++;
-            while (![" ", ";", "="].includes(dartString[current])) {
+            while (current < dartString.length &&
+                ![" ", ";", "="].includes(dartString[current])) {
                 tokenValue += dartString[current];
                 current++;
             }
@@ -60,6 +61,17 @@ function tokenizer(dartString) {
         }
         else if (dartString[current] == "/") {
             throw new Error("not implemented");
+        }
+        else if (dartString.startsWith("print(", current)) {
+            // the print statement is a token
+            current += 6;
+            var tokenValue = '';
+            while (current < dartString.length && dartString[current] != ')') {
+                tokenValue += dartString[current];
+                current++;
+            }
+            tokens.push({ type: "print", value: tokenValue });
+            current++;
         }
         else if (dartString[current] == " ") {
             // we want to skip spaces
@@ -109,6 +121,7 @@ function getAST(tokens) {
     if (tokenGroup[0]) {
         throw new Error("there is a missing semicolon after the last statement");
     }
+    // now we have all the statement-forming tokens grouped together in tokenGroups.
     // a function to check if a token group contains a specific token type
     function contains(listOfTokens, requiredType) {
         // returns index if token exists, otherwise -1
@@ -154,7 +167,7 @@ function getAST(tokens) {
             };
             return subtractionNode;
         }
-        // nextup, check for declarations, identifiers and literals
+        // nextup, check for declarations, identifiers, literals and print tokens
         // at this point, the token group should only have one token b/c the above 3 are our only binary operators
         if (statement.length > 1) {
             throw new Error("token group is expected to have 1 token only. but it has ".concat(statement.length));
@@ -242,10 +255,11 @@ function generator(programNode, symbolTable) {
     var outputString = "";
     // parse each root node in the programNode's body and append the resulting string to the output string
     for (var _i = 0, _a = programNode.body; _i < _a.length; _i++) {
-        var nodee = _a[_i];
-        generate(nodee);
+        var node = _a[_i];
+        generate(node);
     }
     function generate(node) {
+        var _a;
         // check for declaration node
         if (node.type == "declaration") {
             // get the new identifier and add it to the symbol table, then return the new register.
@@ -298,6 +312,25 @@ function generator(programNode, symbolTable) {
             outputString += "".concat(opWord, " ").concat(tempRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
             return tempRegister;
         }
+        // check for print
+        if (node.type == "print") {
+            // printee is the value of the print token.
+            // check if printee identifier and proceed
+            var register = (_a = symbolTable.getSymbol(node.value)) === null || _a === void 0 ? void 0 : _a.register;
+            if (register) { // printee is an identifier with type int
+                // write the relevant mips to print the value of the identifier
+                outputString += "li $v0, 1 \nmove $a0, ".concat(register, " \nsyscall \n");
+                return;
+            }
+            else if (new RegExp("^[0-9]*$").test(node.value)) { // check if printee number literal and proceed
+                outputString += "li $v0, 1 \nli $a0, ".concat(node.value, " \nsyscall");
+                return;
+            }
+            else {
+                // printee is neither an identifier nor a number literal. complain.
+                throw new Error("invalid argument to a print statement.");
+            }
+        }
         // finally, check for assignment node
         if (node.type == "assignment") {
             // do some validations and throw relevant errors
@@ -313,64 +346,14 @@ function generator(programNode, symbolTable) {
     }
     return outputString;
 }
-console.log(generator({
-    type: "program",
-    body: [
-        {
-            type: "declaration",
-            value: "int a"
-        },
-        {
-            type: "declaration",
-            value: "int b"
-        },
-        {
-            type: "declaration",
-            value: "int c"
-        },
-        {
-            type: "assignment",
-            value: "=",
-            left: {
-                type: "identifier",
-                value: "a"
-            },
-            right: {
-                type: "subtraction",
-                value: "-",
-                left: {
-                    type: "identifier",
-                    value: "b"
-                },
-                right: {
-                    type: "identifier",
-                    value: "c"
-                }
-            }
-        },
-        {
-            type: "declaration",
-            value: "int d"
-        },
-        {
-            type: "assignment",
-            value: "=",
-            left: {
-                type: "declaration",
-                value: "int e"
-            },
-            right: {
-                type: "addition",
-                value: "+",
-                left: {
-                    type: "numberLiteral",
-                    value: "13"
-                },
-                right: {
-                    type: "identifier",
-                    value: "c"
-                }
-            }
-        },
-    ]
-}, symbolTable));
+exports.generator = generator;
+/*********************************** THE COMPILER ************************************* */
+function compiler(dartCode) {
+    // we need a global singleton symbol table
+    var symbolTable = new SymbolTable(new RegisterProvider());
+    var tokens = tokenizer(dartCode);
+    var ast = getAST(tokens);
+    var mipsCode = generator(ast, symbolTable);
+    return mipsCode;
+}
+exports.compiler = compiler;

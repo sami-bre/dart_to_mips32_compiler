@@ -1,7 +1,7 @@
 //***********************************THE TOKENIZER*********************************** */
 
 export function tokenizer(
-  dartString: string
+  dartString: String
 ): { type: String; value: String }[] {
   let tokens: { type: String; value: String }[] = [];
   let current = 0; // used to track where we are in the program string
@@ -23,7 +23,10 @@ export function tokenizer(
       current += 4;
       // let's skip some speces, should they exist
       while (dartString[current] == " ") current++;
-      while (![" ", ";", "="].includes(dartString[current])) {
+      while (
+        current < dartString.length &&
+        ![" ", ";", "="].includes(dartString[current])
+      ) {
         tokenValue += dartString[current];
         current++;
       }
@@ -52,7 +55,18 @@ export function tokenizer(
       throw new Error("not implemented");
     } else if (dartString[current] == "/") {
       throw new Error("not implemented");
-    } else if (dartString[current] == " ") {
+    } else if(dartString.startsWith("print(", current)) {   
+      // the print statement is a token
+      current += 6;
+      let tokenValue =''
+      while(current < dartString.length && dartString[current] != ')'){
+        tokenValue += dartString[current]
+        current++;
+      }
+      tokens.push({type: "print", value: tokenValue});
+      current++;
+    }
+     else if (dartString[current] == " ") {
       // we want to skip spaces
       current++;
       continue;
@@ -110,6 +124,8 @@ export function getAST(tokens: { type: String; value: String }[]) {
     throw new Error("there is a missing semicolon after the last statement");
   }
 
+  // now we have all the statement-forming tokens grouped together in tokenGroups.
+
   // a function to check if a token group contains a specific token type
   function contains(
     listOfTokens: { type: String; value: String }[],
@@ -161,7 +177,7 @@ export function getAST(tokens: { type: String; value: String }[]) {
       return subtractionNode;
     }
 
-    // nextup, check for declarations, identifiers and literals
+    // nextup, check for declarations, identifiers, literals and print tokens
     // at this point, the token group should only have one token b/c the above 3 are our only binary operators
     if (statement.length > 1) {
       throw new Error(
@@ -264,11 +280,14 @@ const symbolTable = new SymbolTable(registerProvider);
 
 /*************************** THE CODE GENERATOR **************************** */
 
-function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
+export function generator(
+  programNode: ProgramNode,
+  symbolTable: SymbolTable
+): String {
   let outputString = "";
   // parse each root node in the programNode's body and append the resulting string to the output string
-  for (let nodee of programNode.body) {
-    generate(nodee);
+  for (let node of programNode.body) {
+    generate(node);
   }
 
   function generate(node: any): String | void {
@@ -327,6 +346,24 @@ function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
       return tempRegister;
     }
 
+    // check for print
+    if(node.type == "print"){
+      // printee is the value of the print token.
+      // check if printee identifier and proceed
+      let register = symbolTable.getSymbol(node.value)?.register
+      if(register){ // printee is an identifier with type int
+        // write the relevant mips to print the value of the identifier
+        outputString += `li $v0, 1 \nmove $a0, ${register} \nsyscall \n`
+        return
+      } else if(new RegExp("^[0-9]*$").test(node.value)) { // check if printee number literal and proceed
+        outputString += `li $v0, 1 \nli $a0, ${node.value} \nsyscall`
+        return
+      } else {
+        // printee is neither an identifier nor a number literal. complain.
+        throw new Error("invalid argument to a print statement.")
+      }
+    }
+
     // finally, check for assignment node
     if (node.type == "assignment") {
       // do some validations and throw relevant errors
@@ -345,71 +382,13 @@ function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
   return outputString;
 }
 
-console.log(
-  generator(
-    {
-      type: "program",
-      body: [
-        {
-          type: "declaration",
-          value: "int a",
-        },
-        {
-          type: "declaration",
-          value: "int b",
-        },
-        {
-          type: "declaration",
-          value: "int c",
-        },
-        {
-          type: "assignment",
-          value: "=",
-          left: {
-            type: "identifier",
-            value: "a",
-          },
-          right: {
-            type: "subtraction",
-            value: "-",
-            left: {
-              type: "identifier",
-              value: "b",
-            },
-            right: {
-              type: "identifier",
-              value: "c",
-            },
-          },
-        },
+/*********************************** THE COMPILER ************************************* */
 
-        {
-          type: "declaration",
-          value: "int d",
-        },
-
-        {
-          type: "assignment",
-          value: "=",
-          left: {
-            type: "declaration",
-            value: "int e",
-          },
-          right: {
-            type: "addition",
-            value: "+",
-            left: {
-              type: "numberLiteral",
-              value: "13",
-            },
-            right: {
-              type: "identifier",
-              value: "c",
-            },
-          },
-        },
-      ],
-    },
-    symbolTable
-  )
-);
+export function compiler(dartCode: String): String {
+  // we need a global singleton symbol table
+  const symbolTable = new SymbolTable(new RegisterProvider());
+  let tokens = tokenizer(dartCode);
+  let ast = getAST(tokens);
+  let mipsCode = generator(ast, symbolTable);
+  return mipsCode;
+}
