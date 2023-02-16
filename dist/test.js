@@ -1,15 +1,16 @@
 "use strict";
 exports.__esModule = true;
 var compiler_1 = require("./compiler");
+/*********************************** functions for unit testing *********************************** */
 function testTokenizer(dartString, resultTokens) {
     if (JSON.stringify((0, compiler_1.tokenizer)(dartString)) !== JSON.stringify(resultTokens)) {
-        throw new Error("tokenizer failed:" +
+        throw new Error("TOKENIZER FAILED:" +
             "input: ".concat(dartString, " *** produced tokens: ").concat(JSON.stringify((0, compiler_1.tokenizer)(dartString)), " *** required: ").concat(JSON.stringify(resultTokens)));
     }
 }
 function testGetAST(tokens, stringifiedResultAST) {
     if (JSON.stringify((0, compiler_1.getAST)(tokens)) !== stringifiedResultAST) {
-        throw new Error("getAst failed:" +
+        throw new Error("getAST FAILED:" +
             "input: ".concat(JSON.stringify((0, compiler_1.getAST)(tokens)), " *** output should be: ").concat(stringifiedResultAST));
     }
 }
@@ -20,13 +21,32 @@ function testGenerator(ast, correctMipsOutput) {
     // get the index where the difference starts and trow an error
     var i = 0;
     while (i < generatorOutput.length) {
-        if (generatorOutput[i] != correctMipsOutput[i]) {
-            throw new Error("generator failed. **input AST: ".concat(JSON.stringify(ast), " \n **generator output: ").concat(generatorOutput, " \n        \n **expected output : ").concat(correctMipsOutput, " \n ** these two are different at character ").concat(i, ", around '").concat(generatorOutput.slice(i - 2, i + 2), "' and '").concat(correctMipsOutput.slice(i - 2, i + 2), "'"));
+        if (generatorOutput[i] !== correctMipsOutput[i]) {
+            throw new Error("GENERATOR FAILED **input AST: ".concat(JSON.stringify(ast), " \n **generator output: ").concat(generatorOutput, " \n        \n **expected output : ").concat(correctMipsOutput, " \n ** these two are different at character ").concat(i, ", around '").concat(generatorOutput.slice(i - 4, i + 4), "' and '").concat(correctMipsOutput.slice(i - 4, i + 4), "'"));
             break;
         }
         i++;
     }
+    if (i < correctMipsOutput.length) {
+        throw new Error("the generated output has less characters than the correct output");
+    }
 }
+/******************************** function for end-to-end testing ************************************** */
+function testEndToEnd(dartCode, correctMipsOutput) {
+    var generatedMips = (0, compiler_1.compiler)(dartCode);
+    var i = 0;
+    while (i < generatedMips.length) {
+        if (generatedMips[i] !== correctMipsOutput[i]) {
+            throw new Error("END-TO-END FAILED **input code: ".concat(dartCode, " \n **generated code: ").concat(generatedMips, " \n        \n **expected output : ").concat(correctMipsOutput, " \n ** these two are different at character ").concat(i, ", around '").concat(generatedMips.slice(i - 4, i + 4), "' and '").concat(correctMipsOutput.slice(i - 4, i + 4), "'"));
+            break;
+        }
+        i++;
+    }
+    if (i < generatedMips.length) {
+        throw new Error("the generated mips code has less characters than the correct output");
+    }
+}
+/*************************************************** testing begins here **************************************************** */
 var testCount = 0;
 testTokenizer("int a = 12;", [
     { type: "declaration", value: "int a" },
@@ -214,7 +234,34 @@ testGenerator({
         },
     ]
 }, 
-//remember the format of the correct mips output ... 'statement \nstatement \nstatement...'
+//remember the format of the correct mips output ... 'statement \nstatement ... \nstatement \n'
 "sub $t0, $s1, $s2 \nmove $s0, $t0 \nli $t1, 13 \nadd $t2, $t1, $s2 \nmove $s4, $t2 \n");
 testCount++;
+// testing if the compiler complains when given an incorrect dart code (missing semicolon)
+var errorThrown = true;
+try {
+    testEndToEnd("int zar", ""); // this should throw an error
+    errorThrown = false; // hence, this should not execute
+}
+catch (error) { }
+if (!errorThrown) {
+    throw new Error("the compiler is not complaining when a semicolon is missing at the end of the dart code.");
+}
+testCount++;
+// testing if the compiler complains when given an undefined identifier in the dart code
+errorThrown = true;
+try {
+    testEndToEnd("int zar; int a = 0; a = a - k", ""); // this should throw an error
+    errorThrown = false; // hence, this should not execute
+}
+catch (error) { }
+if (!errorThrown) {
+    throw new Error("the compiler is not complaining when a there is an undefined identifier the dart code.");
+}
+testCount++;
+testEndToEnd("int g = 12 + 14; int c; c = g; c = c-2;", "li $t0, 12 \nli $t1, 14 \nadd $t2, $t0, $t1 \nmove $s0, $t2 \nmove $s1, $s0 \nli $t3, 2 \nsub $t4, $s1, $t3 \nmove $s1, $t4 \n");
+testCount++;
+testEndToEnd("int foo = 3; int bar = 5; int c; int D; c = D; bar = c - D; foo = c + bar;", "li $t0, 3 \nmove $s0, $t0 \nli $t1, 5 \nmove $s1, $t1 \nmove $s2, $s3 \nsub $t2, $s2, $s3 \nmove $s1, $t2 \nadd $t3, $s2, $s1 \nmove $s0, $t3 \n");
+testCount++;
 console.log("========= All ".concat(testCount, " tests passed! ==========="));
+;

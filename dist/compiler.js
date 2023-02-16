@@ -25,7 +25,8 @@ function tokenizer(dartString) {
             // let's skip some speces, should they exist
             while (dartString[current] == " ")
                 current++;
-            while (![" ", ";", "="].includes(dartString[current])) {
+            while (current < dartString.length &&
+                ![" ", ";", "="].includes(dartString[current])) {
                 tokenValue += dartString[current];
                 current++;
             }

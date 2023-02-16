@@ -23,7 +23,10 @@ export function tokenizer(
       current += 4;
       // let's skip some speces, should they exist
       while (dartString[current] == " ") current++;
-      while (![" ", ";", "="].includes(dartString[current])) {
+      while (
+        current < dartString.length &&
+        ![" ", ";", "="].includes(dartString[current])
+      ) {
         tokenValue += dartString[current];
         current++;
       }
@@ -264,7 +267,10 @@ const symbolTable = new SymbolTable(registerProvider);
 
 /*************************** THE CODE GENERATOR **************************** */
 
-export function generator(programNode: ProgramNode, symbolTable: SymbolTable): String {
+export function generator(
+  programNode: ProgramNode,
+  symbolTable: SymbolTable
+): String {
   let outputString = "";
   // parse each root node in the programNode's body and append the resulting string to the output string
   for (let nodee of programNode.body) {
@@ -345,15 +351,13 @@ export function generator(programNode: ProgramNode, symbolTable: SymbolTable): S
   return outputString;
 }
 
-
 /*********************************** THE COMPILER ************************************* */
 
 export function compiler(dartCode: String): String {
   // we need a global singleton symbol table
-  const symbolTable = new SymbolTable(new RegisterProvider())
+  const symbolTable = new SymbolTable(new RegisterProvider());
   let tokens = tokenizer(dartCode);
   let ast = getAST(tokens);
   let mipsCode = generator(ast, symbolTable);
   return mipsCode;
 }
-

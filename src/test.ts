@@ -6,7 +6,10 @@ import {
   SymbolTable,
   ProgramNode,
   generator,
+  compiler,
 } from "./compiler";
+
+/*********************************** functions for unit testing *********************************** */
 
 function testTokenizer(
   dartString: string,
@@ -14,7 +17,7 @@ function testTokenizer(
 ) {
   if (JSON.stringify(tokenizer(dartString)) !== JSON.stringify(resultTokens)) {
     throw new Error(
-      "tokenizer failed:" +
+      "TOKENIZER FAILED:" +
         `input: ${dartString} *** produced tokens: ${JSON.stringify(
           tokenizer(dartString)
         )} *** required: ${JSON.stringify(resultTokens)}`
@@ -28,7 +31,7 @@ function testGetAST(
 ) {
   if (JSON.stringify(getAST(tokens)) !== stringifiedResultAST) {
     throw new Error(
-      "getAst failed:" +
+      "getAST FAILED:" +
         `input: ${JSON.stringify(
           getAST(tokens)
         )} *** output should be: ${stringifiedResultAST}`
@@ -43,16 +46,49 @@ function testGenerator(ast: ProgramNode, correctMipsOutput: String) {
   // get the index where the difference starts and trow an error
   let i = 0;
   while (i < generatorOutput.length) {
-    if (generatorOutput[i] != correctMipsOutput[i]) {
-      throw new Error(`generator failed. **input AST: ${JSON.stringify(
+    if (generatorOutput[i] !== correctMipsOutput[i]) {
+      throw new Error(`GENERATOR FAILED **input AST: ${JSON.stringify(
         ast
       )} \n **generator output: ${generatorOutput} 
-        \n **expected output : ${correctMipsOutput} \n ** these two are different at character ${i}, around '${generatorOutput.slice(i-2, i+2)}' and '${correctMipsOutput.slice(i-2, i+2)}'`);
+        \n **expected output : ${correctMipsOutput} \n ** these two are different at character ${i}, around '${generatorOutput.slice(
+        i - 4,
+        i + 4
+      )}' and '${correctMipsOutput.slice(i - 4, i + 4)}'`);
       break;
     }
     i++;
   }
+  if (i < correctMipsOutput.length) {
+    throw new Error(
+      "the generated output has less characters than the correct output"
+    );
+  }
 }
+
+/******************************** function for end-to-end testing ************************************** */
+
+function testEndToEnd(dartCode: String, correctMipsOutput: String) {
+  const generatedMips = compiler(dartCode);
+  let i = 0;
+  while (i < generatedMips.length) {
+    if (generatedMips[i] !== correctMipsOutput[i]) {
+      throw new Error(`END-TO-END FAILED **input code: ${dartCode} \n **generated code: ${generatedMips} 
+        \n **expected output : ${correctMipsOutput} \n ** these two are different at character ${i}, around '${generatedMips.slice(
+        i - 4,
+        i + 4
+      )}' and '${correctMipsOutput.slice(i - 4, i + 4)}'`);
+      break;
+    }
+    i++;
+  }
+  if (i < generatedMips.length) {
+    throw new Error(
+      "the generated mips code has less characters than the correct output"
+    );
+  }
+}
+
+/*************************************************** testing begins here **************************************************** */
 
 let testCount = 0;
 
@@ -273,10 +309,64 @@ testGenerator(
       },
     ],
   },
-  //remember the format of the correct mips output ... 'statement \nstatement \nstatement...'
+  //remember the format of the correct mips output ... 'statement \nstatement ... \nstatement \n'
   `sub $t0, $s1, $s2 \nmove $s0, $t0 \nli $t1, 13 \nadd $t2, $t1, $s2 \nmove $s4, $t2 \n`
 );
 
 testCount++;
 
+// testing if the compiler complains when given an incorrect dart code (missing semicolon)
+let errorThrown = true;
+try {
+  testEndToEnd("int zar", ""); // this should throw an error
+  errorThrown = false; // hence, this should not execute
+} catch (error) {}
+
+if (!errorThrown) {
+  throw new Error(
+    "the compiler is not complaining when a semicolon is missing at the end of the dart code."
+  );
+}
+
+testCount++;
+
+// testing if the compiler complains when given an undefined identifier in the dart code
+errorThrown = true;
+try {
+  testEndToEnd("int zar; int a = 0; a = a - k", ""); // this should throw an error
+  errorThrown = false; // hence, this should not execute
+} catch (error) {}
+
+if (!errorThrown) {
+  throw new Error(
+    "the compiler is not complaining when a there is an undefined identifier the dart code."
+  );
+}
+
+testCount++;
+
+
+testEndToEnd(
+  "int g = 12 + 14; int c; c = g; c = c-2;",
+  `li $t0, 12 \nli $t1, 14 \nadd $t2, $t0, $t1 \nmove $s0, $t2 \nmove $s1, $s0 \nli $t3, 2 \nsub $t4, $s1, $t3 \nmove $s1, $t4 \n`
+);
+
+testCount++;
+
+testEndToEnd(
+  "int foo = 3; int bar = 5; int c; int D; c = D; bar = c - D; foo = c + bar;",
+  `li $t0, 3 
+move $s0, $t0 
+li $t1, 5 
+move $s1, $t1 
+move $s2, $s3 
+sub $t2, $s2, $s3 
+move $s1, $t2 
+add $t3, $s2, $s1 
+move $s0, $t3 \n`
+)
+
+testCount++
+
 console.log(`========= All ${testCount} tests passed! ===========`);
+;
