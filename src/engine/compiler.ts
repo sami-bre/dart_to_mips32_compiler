@@ -392,3 +392,4 @@ export function compiler(dartCode: String): String {
   let mipsCode = generator(ast, symbolTable);
   return mipsCode;
 }
+
