@@ -87,6 +87,19 @@ function compileCurrentFile() {
   
 }
 
+var editArea = document.getElementById('edit-area');
+var lineNumbers = document.getElementById('line-numbers');
+
+function updateLineNumbers() {
+  const lines = editArea.value.split('\n');
+  const lineNumbersHtml = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+  lineNumbers.innerHTML = lineNumbersHtml;
+}
+
+// Call updateLineNumbers() when the page loads and every time the edit area's value changes
+updateLineNumbers();
+editArea.addEventListener('input', updateLineNumbers);
+
 /*********************************** THE PRE-PROCESSOR *************************************** */
 
 function preProcessor(inputText) {
