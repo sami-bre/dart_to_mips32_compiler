@@ -51,10 +51,17 @@ export function tokenizer(
       tokens.push({ type: "subtraction", value: "-" });
       current++;
     } else if (dartString[current] == "*") {
-      // multiply sign is a token
-      throw new Error("not implemented");
+      // the subtract symbol is a token
+      tokens.push({ type: "multiplication", value: "*" });
+      current++;
     } else if (dartString[current] == "/") {
-      throw new Error("not implemented");
+      // the subtract symbol is a token
+      tokens.push({ type: "division", value: "/" });
+      current++;
+    } else if (dartString[current] == "/") {
+      // the subtract symbol is a token
+      tokens.push({ type: "division", value: "/" });
+      current++;
     } else if(dartString.startsWith("print(", current)) {   
       // the print statement is a token
       current += 6;
@@ -175,6 +182,29 @@ export function getAST(tokens: { type: String; value: String }[]) {
         right: parser(statement.slice(index + 1)),
       };
       return subtractionNode;
+    }
+
+    // then we check for add/sub
+    index = contains(statement, "division");
+    if (index != -1) {
+      let divisionNode = {
+        type: "division",
+        value: "/",
+        left: parser(statement.slice(0, index)),
+        right: parser(statement.slice(index + 1)),
+      };
+      return divisionNode;
+    }
+
+    index = contains(statement, "multiplication");
+    if (index != -1) {
+      let multiplicationNode = {
+        type: "multiplication",
+        value: "*",
+        left: parser(statement.slice(0, index)),
+        right: parser(statement.slice(index + 1)),
+      };
+      return multiplicationNode;
     }
 
     // nextup, check for declarations, identifiers, literals and print tokens
@@ -343,6 +373,28 @@ export function generator(
       let tempRegister = symbolTable.registerProvider.getTemp();
       let opWord = node.type == "addition" ? "add" : "sub";
       outputString += `${opWord} ${tempRegister}, ${leftRegister}, ${rightRegister} \n`;
+      return tempRegister;
+    }
+
+    // checking for multiplication
+    if (node.type == "multiplication") {
+      let leftRegister = generate(node.left);
+      let rightRegister = generate(node.right);
+      let tempRegister = symbolTable.registerProvider.getTemp();
+      let opWord = "mult";
+      outputString += `${opWord} ${leftRegister}, ${rightRegister} \n`;
+      outputString += `mflo ${tempRegister}}`;
+      return tempRegister;
+    }
+
+    // TODO: Finish this, this is not done
+    if (node.type == "division") {
+      let leftRegister = generate(node.left);
+      let rightRegister = generate(node.right);
+      let tempRegister = symbolTable.registerProvider.getTemp();
+      let opWord = "div";
+      outputString += `${opWord} ${tempRegister}, ${leftRegister}, ${rightRegister} \n`;
+      outputString += `mflo ${tempRegister}`;
       return tempRegister;
     }
 

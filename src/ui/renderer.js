@@ -1,4 +1,4 @@
-let openFiles = [{ name: "live", content: "" }];
+let openFiles = [{ name: "Live Compiler", content: "" }];
 let currentFileIndex = 0;
 
 // the add file button
@@ -159,11 +159,37 @@ function tokenizer(dartString) {
             current++;
         }
         else if (dartString[current] == "*") {
-            // multiply sign is a token
-            throw new Error("not implemented");
+            // the subtract symbol is a token
+            tokens.push({ type: "multiplication", value: "*" });
+            current++;
         }
         else if (dartString[current] == "/") {
-            throw new Error("not implemented");
+            // the subtract symbol is a token
+            tokens.push({ type: "division", value: "/" });
+            current++;
+        }
+        else if (dartString[current] == "&") {
+            // the subtract symbol is a token
+            if (current + 1 < dartString.length && dartString[current + 1] == "&") {
+                tokens.push({ type: "and", value: "&&" });
+                current++;
+            } else {
+                current++;
+            }
+        }
+        else if (dartString[current] == "|") {
+            // the subtract symbol is a token
+            if (current + 1 < dartString.length && dartString[current + 1] == "|") {
+                tokens.push({ type: "or", value: "||" });
+                current++;
+            } else {
+                current++;
+            }
+        }
+        else if (dartString[current] == "!") {
+            // the subtract symbol is a token
+            tokens.push({ type: "not", value: "!" });
+            current++;
         }
         else if (dartString.startsWith("print(", current)) {
             // the print statement is a token
@@ -274,6 +300,55 @@ function getAST(tokens) {
             };
             return subtractionNode;
         }
+        index = contains(statement, "multiplication");
+        if (index != -1) {
+            var multiplicationNode = {
+                type: "multiplication",
+                value: "*",
+                left: parser(statement.slice(0, index)),
+                right: parser(statement.slice(index + 1))
+            };
+            return multiplicationNode;
+        }
+        index = contains(statement, "division");
+        if (index != -1) {
+            var divisionNode = {
+                type: "division",
+                value: "/",
+                left: parser(statement.slice(0, index)),
+                right: parser(statement.slice(index + 1))
+            };
+            return divisionNode;
+        }
+        index = contains(statement, "and");
+        if (index != -1) {
+            var andNode = {
+                type: "and",
+                value: "&&",
+                left: parser(statement.slice(0, index)),
+                right: parser(statement.slice(index + 1))
+            };
+            return andNode;
+        }
+        index = contains(statement, "or");
+        if (index != -1) {
+            var orNode = {
+                type: "or",
+                value: "||",
+                left: parser(statement.slice(0, index)),
+                right: parser(statement.slice(index + 1))
+            };
+            return orNode;
+        }
+        index = contains(statement, "not");
+        if (index != -1) {
+            var notNode = {
+                type: "not",
+                value: "!",
+                item: parser(statement.slice(0, index)),
+            };
+            return notNode;
+        }
         // nextup, check for declarations, identifiers, literals and print tokens
         // at this point, the token group should only have one token b/c the above 3 are our only binary operators
         if (statement.length > 1) {
@@ -291,10 +366,6 @@ function getAST(tokens) {
     // finally, return the program node
     return programNode;
 }
-
-
-
-
 
 
 //******************************THE REGISTER PROVIDER CLASS**************************/
@@ -429,7 +500,58 @@ function generator(programNode, symbolTable) {
             var rightRegister = generate(node.right);
             var tempRegister = symbolTable.registerProvider.getTemp();
             var opWord = node.type == "addition" ? "add" : "sub";
+            outputString += "".concat(opWord, " ").concat(leftRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
+            return leftRegister;
+        }
+        // checking for addition / subtraction
+        if (node.type == "multiplication") {
+            // get the left and right registers that result from calling generate on the operands, get
+            // a temporary register, write mips to add the operand registers into the temp register
+            // and finally return the temp register
+            var leftRegister = generate(node.left);
+            var rightRegister = generate(node.right);
+            var tempRegister = symbolTable.registerProvider.getTemp();
+            var opWord = "mult";
+            outputString += "".concat(opWord, " ").concat(leftRegister, ", ").concat(rightRegister, " \n");
+            outputString += "mflo ".concat(tempRegister, " \n");
+            
+            return tempRegister;
+        }
+        // checking for addition / subtraction
+        if (node.type == "divison") {
+            // get the left and right registers that result from calling generate on the operands, get
+            // a temporary register, write mips to add the operand registers into the temp register
+            // and finally return the temp register
+            var leftRegister = generate(node.left);
+            var rightRegister = generate(node.right);
+            var tempRegister = symbolTable.registerProvider.getTemp();
+            var opWord = "div";
             outputString += "".concat(opWord, " ").concat(tempRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
+            outputString += "mflo ".concat(tempRegister, " \n");
+            
+            return tempRegister;
+        }
+        // checking for addition / subtraction
+        if (node.type == "and" || node.type == "or") {
+            // get the left and right registers that result from calling generate on the operands, get
+            // a temporary register, write mips to add the operand registers into the temp register
+            // and finally return the temp register
+            var leftRegister = generate(node.left);
+            var rightRegister = generate(node.right);
+            var tempRegister = symbolTable.registerProvider.getTemp();
+            var opWord = node.type == "and" ? "and" : "or";
+            outputString += "".concat(opWord, " ").concat(leftRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
+            return leftRegister;
+        }
+        // checking for addition / subtraction
+        if (node.type == "not") {
+            // get the left and right registers that result from calling generate on the operands, get
+            // a temporary register, write mips to add the operand registers into the temp register
+            // and finally return the temp register
+            var leftRegister = generate(node.item);
+            var tempRegister = symbolTable.registerProvider.getTemp();
+            var opWord = node.type == "not";
+            outputString += "".concat(opWord, " ").concat(tempRegister, ", ").concat(leftRegister, " \n");
             return tempRegister;
         }
         // check for print
