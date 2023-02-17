@@ -14,7 +14,26 @@
       rel="stylesheet"
     />
     <title>Dart-MIPS compiler</title>
-    <script type="module" src="renderer.js" defer></script>
+    <style>
+      #edit-area {
+        height: 468px !important;
+      }
+      #output-area {
+        height: 270px !important;
+      }
+      #console-area {
+        height: 110px !important;
+      }
+      #edit-area-container {
+        height: 500px !important;
+      }
+      #side-container {
+        height: 500px !important;
+      }
+      .full-container {
+        height: 500px !important;
+      }
+    </style>
   </head>
   <body class="bg-gray-900 font-sans">
     <!-- Toolbar -->
@@ -37,8 +56,8 @@
           </button>
         </div>
         <div class="flex items-center">
-          <button
-            class="text-gray-900 mr-4 border rounded-sm bg-gray-200 px-2 py-1 hover:shadow-outline"
+          <button id="compile-btn"
+            class="text-gray-900 mr-4 border rounded bg-gray-200 px-2 py-1 hover:bg-gray-800 hover:text-gray-200 focus:border-black"
           >
             <i class="fas fa-play"></i> Compile
           </button>
@@ -46,34 +65,35 @@
       </div>
     </div>
     <!-- Main content area -->
-    <div class="flex flex-row h-screen">
+    <div class="flex flex-row h-screen full-container">
       <!-- Editor -->
-      <div class="flex-1 flex flex-row w-full">
+      <div class="flex-1 flex flex-row w-full full-container">
         <!-- Code editor -->
-        <div class="flex-1 p-4 w-3/5">
+        <div id="edit-area-container" class="flex-1 p-4 w-3/5">
           <textarea
             id="edit-area"
             class="border w-full text-white border-gray-600 bg-gray-800 rounded-md p-2 h-full"
           ></textarea>
         </div>
         <!-- Output and console panel -->
-        <div
+        <div id="side-container"
           class="w-2/5 bg-gray-900 text-gray-200 p-4 flex flex-col gap-5 h-full"
         >
             <h3 class="text-lg font-bold">MIPS32 Output</h3>
             <textarea
               id="output-area"
-              class="border w-full text-white border-gray-600 bg-gray-800 rounded-md py-2 h-2/5 resize-none"
+              class="border w-full text-white border-gray-600 bg-gray-800 rounded-md p-2 h-2/5 resize-none"
               disabled
             ></textarea>
             <h3 class="text-lg font-bold">Error Console</h3>
             <textarea
               id="console-area"
-              class="border w-full text-white border-gray-600 bg-gray-800 rounded-md py-2 h-2/5 resize-none""
+              class="border w-full text-white border-gray-600 bg-gray-800 rounded-md p-2 h-2/5 resize-none""
               disabled
             ></textarea>
         </div>
       </div>
     </div>
+    <script src="renderer.js" defer></script>
   </body>
 </html>

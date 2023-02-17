@@ -1,99 +1,7 @@
-let openFiles = [{ name: "live", content: "" }];
-let currentFileIndex = 0;
-
-// the add file button
-var addFileBtn = document.getElementById("add-file");
-addFileBtn.addEventListener("click", chooseFile);
-
-// the code editing area
-var editArea = document.getElementById("edit-area");
-editArea.onchange = textAreaChange;
-
-// the tab-container
-let tabContainer = document.getElementById("tab-container")
-
-// the compile button
-let compileBtn = document.getElementById("compile-btn")
-compileBtn.addEventListener("click", compileCurrentFile)
-
-// the mips output
-let outputArea = document.getElementById("output-area");
-
-// the error console
-let errorConsole = document.getElementById("console-area")
-
-console.log({outputArea, errorConsole,})
-
-let fileInput = document.createElement("input");
-fileInput.type = "file";
-fileInput.addEventListener("change", loadFile);
-
-// load (switch to) the live file
-switchFile(0)
-
-function chooseFile(e) {
-  fileInput.click();
-}
-
-function loadFile(e) {
-  let file = e.target.files[0];
-
-  let reader = new FileReader();
-  reader.readAsText(file);
-
-  // when the reader finishes reading ...
-  reader.onload = (readerEvent) => {
-    let fileContent = readerEvent.target.result; // this is the content
-    console.log(fileContent);
-    // add the content to the array of files
-    openFiles.push({ name: file.name, content: fileContent });
-    // switch to the new file
-    switchFile(openFiles.length - 1)
-    console.log(openFiles.length)
-  };
-}
-
-function switchFile(index) {
-    currentFileIndex = index;
-    editArea.value = openFiles[index].content;
-    console.log(openFiles[index].content)
-    // add a new tab, select it, and render all the other tabs as unselected
-    tabContainer.innerHTML = ""
-    for(let i=0; i<openFiles.length; i++) {
-        tabContainer.innerHTML += i == index 
-        ? `<button class="text-white bg-gray-500 rounded-lg px-3 py-1 mr-1 hover:bg-gray-400" onclick="switchFile(${i})">${openFiles[i].name}</button>`
-        : `<button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400" onclick="switchFile(${i})">${openFiles[i].name}</button>`
-    }
-}
-
-function textAreaChange() {
-  let newContent = editArea.value;
-  openFiles[currentFileIndex].content = newContent
-}
-
-
-function compileCurrentFile() {
-    try {
-        let mipsOutput = compiler(openFiles[currentFileIndex].content)
-        outputArea.value = mipsOutput;
-        errorConsole.value = "";
-    } catch (error) {
-        errorConsole.value = error;
-        outputArea.value = "";
-    }
-  
-}
-
-
-
-
-
-
-
-
-
-
+"use strict";
 //***********************************THE TOKENIZER*********************************** */
+exports.__esModule = true;
+exports.compiler = exports.generator = exports.SymbolTable = exports.RegisterProvider = exports.getAST = exports.tokenizer = void 0;
 function tokenizer(dartString) {
     var tokens = [];
     var current = 0; // used to track where we are in the program string
@@ -187,11 +95,7 @@ function tokenizer(dartString) {
     }
     return tokens;
 }
-
-
-
-
-
+exports.tokenizer = tokenizer;
 function getAST(tokens) {
     var programNode = {
         type: "program",
@@ -280,12 +184,7 @@ function getAST(tokens) {
     // finally, return the program node
     return programNode;
 }
-
-
-
-
-
-
+exports.getAST = getAST;
 //******************************THE REGISTER PROVIDER CLASS**************************/
 var RegisterProvider = /** @class */ (function () {
     function RegisterProvider() {
@@ -308,11 +207,7 @@ var RegisterProvider = /** @class */ (function () {
     };
     return RegisterProvider;
 }());
-
-
-
-
-
+exports.RegisterProvider = RegisterProvider;
 // now create a singleton global registerProvider object
 var registerProvider = new RegisterProvider();
 var SymbolTable = /** @class */ (function () {
@@ -351,11 +246,7 @@ var SymbolTable = /** @class */ (function () {
     };
     return SymbolTable;
 }());
-
-
-
-
-
+exports.SymbolTable = SymbolTable;
 // now create a singleton global symbolTable object
 // and pass it the singleton global registerProvider so they get connected
 var symbolTable = new SymbolTable(registerProvider);
@@ -455,10 +346,7 @@ function generator(programNode, symbolTable) {
     }
     return outputString;
 }
-
-
-
-
+exports.generator = generator;
 /*********************************** THE COMPILER ************************************* */
 function compiler(dartCode) {
     // we need a global singleton symbol table
@@ -468,3 +356,4 @@ function compiler(dartCode) {
     var mipsCode = generator(ast, symbolTable);
     return mipsCode;
 }
+exports.compiler = compiler;
