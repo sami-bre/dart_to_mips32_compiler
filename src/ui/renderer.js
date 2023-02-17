@@ -1,5 +1,6 @@
 let openFiles = [{ name: "Live Compiler", content: "" }];
 let currentFileIndex = 0;
+let file_no = 0;
 
 // the add file button
 var addFileBtn = document.getElementById("add-file");
@@ -102,9 +103,60 @@ editArea.addEventListener('input', updateLineNumbers);
 
 /*********************************** THE PRE-PROCESSOR *************************************** */
 
+<<<<<<< Updated upstream
 function preProcessor(inputText) {
     // now we just replace new-line characters with space (" ")
     let processedText = inputText.replace(/\r?\n|\r/g, " ")
+=======
+function removeComments(source) {
+    source = source.split('\n');
+    // object to be returned
+    let out_put = [];
+
+    // create a flag to know if in comment
+    let in_comment = false;
+
+    // iterate the source code
+    for (let line of source) {
+        if (!in_comment) {
+            out_put.push([]);
+        }
+        let i = 0;
+        while (i < line.length) {
+            let char = line.charAt(i);
+            if (in_comment) {
+                if (char === '*' && i + 1 < line.length && line.charAt(i + 1) === '/') {
+                    in_comment = false;
+                    i += 1;
+                }
+                i += 1;
+            } else {
+                if (char === '/' && i + 1 < line.length && line.charAt(i + 1) === '*') {
+                    in_comment = true;
+                    i += 1;
+                } else if (char === '/' && i + 1 < line.length && line.charAt(i + 1) === '/') {
+                    break;
+                } else {
+                    out_put[out_put.length - 1].push(char);
+                }
+                i += 1;
+            }
+        }
+        if (!in_comment) {
+            let new_line = out_put.pop().join('');
+            if (new_line) {
+                out_put.push(new_line);
+            }
+        }
+    }
+    return out_put.join('');
+}
+
+
+function preProcessor(inputText) {
+    // now we just replace new-line characters with space (" ")
+    let processedText = removeComments(inputText);
+>>>>>>> Stashed changes
     return processedText;
 }
 
@@ -149,8 +201,8 @@ function tokenizer(dartString) {
             tokens.push({ type: "declaration", value: tokenValue });
         }
         else if (['"', "'"].includes(dartString[current])) {
-            // strings are tokens
-            throw new Error("not implemented");
+            counter++;
+            throw new Error("String literals are not supported, at least not yet.");
         }
         else if (new RegExp("^[0-9]$").test(dartString[current])) {
             // numbers are tokens, like 325
@@ -204,15 +256,15 @@ function tokenizer(dartString) {
             tokens.push({ type: "not", value: "!" });
             current++;
         }
-        else if (dartString.startsWith("print(", current)) {
+        else if (dartString[current] == "!") {
+            // the subtract symbol is a token
+            tokens.push({ type: "not", value: "!" });
+            current++;
+        }
+        else if (dartString.startsWith("print", current)) {
             // the print statement is a token
-            current += 6;
-            var tokenValue = '';
-            while (current < dartString.length && dartString[current] != ')') {
-                tokenValue += dartString[current];
-                current++;
-            }
-            tokens.push({ type: "print", value: tokenValue });
+            current += 5;
+            tokens.push({ type: "print", value: "print" });
             current++;
         }
         else if (dartString[current] == " ") {
@@ -232,15 +284,12 @@ function tokenizer(dartString) {
         }
         else {
             // if all fails, throw an error
-            throw new Error("unknown token at position ".concat(current));
+            throw new Error("Unknown token at position ".concat(current));
         }
     }
+    console.log(tokens);
     return tokens;
 }
-
-
-
-
 
 function getAST(tokens) {
     var programNode = {
@@ -362,6 +411,15 @@ function getAST(tokens) {
             };
             return notNode;
         }
+        index = contains(statement, /[a-z][A-Z][!@#$%^&*()-_+=]/);
+        if (index != -1) {
+            var notNode = {
+                type: "string",
+                value: parser(statement.slice(0, index)),
+            };
+            console.log(notNode.value)
+            return notNode;
+        }
         // nextup, check for declarations, identifiers, literals and print tokens
         // at this point, the token group should only have one token b/c the above 3 are our only binary operators
         if (statement.length > 1) {
@@ -420,7 +478,7 @@ var SymbolTable = /** @class */ (function () {
         var i = 0;
         while (i < this.table.length) {
             if (this.table[i].name == identifier) {
-                throw new Error("the identifier ".concat(identifier, " is already declared."));
+                throw new Error("The identifier ".concat(identifier, " is already declared."));
             }
             i++;
         }
@@ -601,7 +659,6 @@ function generator(programNode, symbolTable) {
     }
     return outputString;
 }
-
 
 
 
