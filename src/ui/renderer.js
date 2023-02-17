@@ -26,6 +26,7 @@ console.log({outputArea, errorConsole,})
 
 let fileInput = document.createElement("input");
 fileInput.type = "file";
+fileInput.accept = ".dart"
 fileInput.addEventListener("change", loadFile);
 
 // load (switch to) the live file
@@ -76,7 +77,8 @@ function compileCurrentFile() {
     try {
         let processedText = preProcessor(openFiles[currentFileIndex].content)
         let mipsOutput = compiler(processedText)
-        outputArea.value = mipsOutput;
+        let postProcessed = postProcessor(mipsOutput)
+        outputArea.value = postProcessed;
         errorConsole.value = "";
     } catch (error) {
         errorConsole.value = error;
@@ -93,6 +95,14 @@ function preProcessor(inputText) {
     return processedText;
 }
 
+
+/*********************************** THE POST-PROCESSOR *************************************** */
+
+function postProcessor(mipsCode) {
+    // currently, we just add the '.text' label at the start of the compiled mips code
+    let postProcessed = ".text \n\n" + mipsCode;
+    return postProcessed;
+}
 
 //***********************************THE TOKENIZER*********************************** */
 function tokenizer(dartString) {

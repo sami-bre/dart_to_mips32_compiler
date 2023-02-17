@@ -19,6 +19,8 @@
   "homepage": "https://github.com/sami-bre/dart_to_mips32_compiler#readme",
   "devDependencies": {
     "@types/node": "^18.13.0",
+    "electron": "^23.1.0",
+    "electron-packager": "^17.1.1",
     "typescript": "^4.9.5"
   }
 }
