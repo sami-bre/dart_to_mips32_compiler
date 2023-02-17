@@ -74,7 +74,8 @@ function textAreaChange() {
 
 function compileCurrentFile() {
     try {
-        let mipsOutput = compiler(openFiles[currentFileIndex].content)
+        let processedText = preProcessor(openFiles[currentFileIndex].content)
+        let mipsOutput = compiler(processedText)
         outputArea.value = mipsOutput;
         errorConsole.value = "";
     } catch (error) {
@@ -84,13 +85,13 @@ function compileCurrentFile() {
   
 }
 
+/*********************************** THE PRE-PROCESSOR *************************************** */
 
-
-
-
-
-
-
+function preProcessor(inputText) {
+    // now we just replace new-line characters with space (" ")
+    let processedText = inputText.replace(/\r?\n|\r/g, " ")
+    return processedText;
+}
 
 
 //***********************************THE TOKENIZER*********************************** */
