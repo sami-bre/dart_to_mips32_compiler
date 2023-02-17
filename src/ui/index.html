@@ -7,19 +7,19 @@
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css"
       rel="stylesheet"
-    />
+      />
     <!-- Include Font Awesome -->
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
       rel="stylesheet"
-    />
+      />
     <title>Dart-MIPS compiler</title>
     <style>
       #edit-area {
         height: 88vh !important;
       }
       #output-area {
-        height: 55vh !important;
+        height: 80vh !important;
       }
       #console-area {
         height: 44vh !important;
@@ -43,22 +43,21 @@
         <div class="flex flex-row h-1/6 flex items-center bg-gray-800 py-2">
           <div
             id="tab-container"
-            class="bg-gray-800 text-gray-200 px-4 flex items-center"
-          >
+            class="bg-gray-800 text-gray-200 px-4 flex items-center">
             <!-- <button class="text-white bg-gray-500 rounded-l-lg px-3 py-1 mr-1 hover:bg-gray-400">index.html</button>
           <button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400">app.js</button> -->
           </div>
           <button
             id="add-file"
-            class="text-white bg-gray-500 rounded-lg py-1 px-3 hover:bg-gray-400"
-          >
+            class="text-white bg-gray-500 rounded-lg py-1 px-3
+            hover:bg-gray-400">
             <i class="fas fa-plus" aria-hidden="true"></i> Open From File
           </button>
         </div>
         <div class="flex items-center">
           <button id="compile-btn"
-            class="text-gray-900 mr-4 border rounded bg-gray-200 px-2 py-1 hover:bg-gray-800 hover:text-gray-200 focus:border-black"
-          >
+            class="text-gray-900 mr-4 border rounded bg-green-400 px-2 py-1
+            hover:bg-green-800 hover:text-gray-200 focus:border-black">
             <i class="fas fa-play"></i> Compile
           </button>
         </div>
@@ -72,25 +71,29 @@
         <div id="edit-area-container" class="flex-1 p-4 w-3/5">
           <textarea
             id="edit-area"
-            class="border w-full text-white border-gray-600 bg-gray-800 rounded-md p-2 h-full"
-          ></textarea>
+            class="border w-full font-mono text-white border-gray-600
+            bg-gray-800 rounded-sm p-2 h-full"></textarea>
         </div>
         <!-- Output and console panel -->
         <div id="side-container"
-          class="w-2/5 bg-gray-900 text-gray-200 p-4 flex flex-col gap-5 h-full"
-        >
-            <h3 class="text-lg font-bold">MIPS32 Output</h3>
-            <textarea
-              id="output-area"
-              class="border w-full text-white border-gray-600 bg-gray-800 rounded-md p-2 h-2/5 resize-none"
-              disabled
-            ></textarea>
-            <h3 class="text-lg font-bold">Error Console</h3>
-            <textarea
-              id="console-area"
-              class="border w-full text-white border-gray-600 bg-gray-800 rounded-md p-2 h-2/5 resize-none""
-              disabled
-            ></textarea>
+          class="w-2/5 bg-gray-900 text-gray-200 p-4 flex flex-col gap-5 h-full">
+          <div class="flex flex-row">
+            <h3 class="text-lg font-bold w-5/6">MIPS32 Output</h3>
+            <button id="copy-btn" class="font-mono w-1/6 border border-gray-600 rounded-sm hover:bg-gray-800">
+            <i class="fas fa-copy" aria-hidden="true"></i> Copy
+          </button>
+          </div>
+          <textarea
+            id="output-area"
+            class="font-mono border w-full text-white border-gray-600 bg-gray-800
+            rounded-sm p-2 h-2/5 resize-none"
+            disabled></textarea>
+          <h3 class="text-lg font-bold">Error Console</h3>
+          <textarea
+            id="console-area"
+            class="border w-full text-white border-gray-600 bg-gray-800
+            rounded-sm p-2 h-2/5 resize-none""
+            disabled></textarea>
         </div>
       </div>
     </div>

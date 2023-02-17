@@ -22,7 +22,7 @@ let outputArea = document.getElementById("output-area");
 // the error console
 let errorConsole = document.getElementById("console-area")
 
-console.log({outputArea, errorConsole,})
+console.log({ outputArea, errorConsole, })
 
 let fileInput = document.createElement("input");
 fileInput.type = "file";
@@ -33,25 +33,25 @@ fileInput.addEventListener("change", loadFile);
 switchFile(0)
 
 function chooseFile(e) {
-  fileInput.click();
+    fileInput.click();
 }
 
 function loadFile(e) {
-  let file = e.target.files[0];
+    let file = e.target.files[0];
 
-  let reader = new FileReader();
-  reader.readAsText(file);
+    let reader = new FileReader();
+    reader.readAsText(file);
 
-  // when the reader finishes reading ...
-  reader.onload = (readerEvent) => {
-    let fileContent = readerEvent.target.result; // this is the content
-    console.log(fileContent);
-    // add the content to the array of files
-    openFiles.push({ name: file.name, content: fileContent });
-    // switch to the new file
-    switchFile(openFiles.length - 1)
-    console.log(openFiles.length)
-  };
+    // when the reader finishes reading ...
+    reader.onload = (readerEvent) => {
+        let fileContent = readerEvent.target.result; // this is the content
+        console.log(fileContent);
+        // add the content to the array of files
+        openFiles.push({ name: file.name, content: fileContent });
+        // switch to the new file
+        switchFile(openFiles.length - 1)
+        console.log(openFiles.length)
+    };
 }
 
 function switchFile(index) {
@@ -60,16 +60,16 @@ function switchFile(index) {
     console.log(openFiles[index].content)
     // add a new tab, select it, and render all the other tabs as unselected
     tabContainer.innerHTML = ""
-    for(let i=0; i<openFiles.length; i++) {
-        tabContainer.innerHTML += i == index 
-        ? `<button class="text-white bg-gray-500 rounded-lg px-3 py-1 mr-1 hover:bg-gray-400" onclick="switchFile(${i})">${openFiles[i].name}</button>`
-        : `<button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400" onclick="switchFile(${i})">${openFiles[i].name}</button>`
+    for (let i = 0; i < openFiles.length; i++) {
+        tabContainer.innerHTML += i == index
+            ? `<button class="text-white bg-gray-500 rounded-lg px-3 py-1 mr-1 hover:bg-gray-400" onclick="switchFile(${i})">${openFiles[i].name}</button>`
+            : `<button class="text-gray-300 bg-gray-700 px-3 py-1 mr-1 hover:bg-gray-400" onclick="switchFile(${i})">${openFiles[i].name}</button>`
     }
 }
 
 function textAreaChange() {
-  let newContent = editArea.value;
-  openFiles[currentFileIndex].content = newContent
+    let newContent = editArea.value;
+    openFiles[currentFileIndex].content = newContent
 }
 
 
@@ -84,8 +84,20 @@ function compileCurrentFile() {
         errorConsole.value = error;
         outputArea.value = "";
     }
-  
+
 }
+
+let copyBtn = document.querySelector("#copy-btn");
+
+copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(outputArea.value)
+        .then(() => {
+            console.log("Text copied to clipboard");
+        })
+        .catch((err) => {
+            console.error("Error copying text: ", err);
+        });
+});
 
 /*********************************** THE PRE-PROCESSOR *************************************** */
 
@@ -514,7 +526,7 @@ function generator(programNode, symbolTable) {
             var opWord = "mult";
             outputString += "".concat(opWord, " ").concat(leftRegister, ", ").concat(rightRegister, " \n");
             outputString += "mflo ".concat(tempRegister, " \n");
-            
+
             return tempRegister;
         }
         // checking for addition / subtraction
@@ -528,7 +540,7 @@ function generator(programNode, symbolTable) {
             var opWord = "div";
             outputString += "".concat(opWord, " ").concat(tempRegister, ", ").concat(leftRegister, ", ").concat(rightRegister, " \n");
             outputString += "mflo ".concat(tempRegister, " \n");
-            
+
             return tempRegister;
         }
         // checking for addition / subtraction
